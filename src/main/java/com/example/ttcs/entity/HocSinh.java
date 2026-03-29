@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,6 +24,7 @@ public class HocSinh {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @JsonIgnore
     @OneToOne
     @MapsId
     @JoinColumn(name = "id")

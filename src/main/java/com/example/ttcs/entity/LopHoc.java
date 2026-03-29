@@ -1,43 +1,62 @@
 package com.example.ttcs.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
 @Entity
-@Table(name = "lop_hoc")
 public class LopHoc {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "ten_lop", nullable = false)
     private String tenLop;
-
-    @Column(name = "ma_lop", nullable = false)
     private String maLop;
-
-    @Column(name = "nam_hoc")
     private String namHoc;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @ManyToOne
-    @JoinColumn(name = "giao_vien_id", nullable = false)
+    @JoinColumn(name = "giao_vien_id")
     private GiaoVien giaoVien;
 
+    public LopHoc() {
+    }
+
+    // Getter và Setter quan trọng
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getTenLop() {
+        return tenLop;
+    }
+
+    public void setTenLop(String tenLop) {
+        this.tenLop = tenLop;
+    }
+
+    public String getMaLop() {
+        return maLop;
+    }
+
+    public void setMaLop(String maLop) {
+        this.maLop = maLop;
+    }
+
+    public String getNamHoc() {
+        return namHoc;
+    }
+
+    public void setNamHoc(String namHoc) {
+        this.namHoc = namHoc;
+    }
+
+    public GiaoVien getGiaoVien() {
+        return giaoVien;
+    }
+
+    public void setGiaoVien(GiaoVien giaoVien) {
+        this.giaoVien = giaoVien;
+    }
 }
-
-
