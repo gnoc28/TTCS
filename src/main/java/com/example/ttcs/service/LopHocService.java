@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors; // 🚀 Đã import thêm cái này
+
 @Service
 public class LopHocService {
 
@@ -70,13 +73,58 @@ public class LopHocService {
         hocSinhLopRepository.delete(hocSinhLop);
     }
 
-    // Hàm phân quyền: Đảm bảo chỉ GV tạo lớp mới được quyền sửa lớp đó
     private LopHoc kiemTraQuyenGiaoVien(Integer lopHocId, Integer giaoVienId) {
         LopHoc lopHoc = lopHocRepository.findById(lopHocId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
         if (!lopHoc.getGiaoVien().getId().equals(giaoVienId)) {
-            throw new RuntimeException("Từ chối truy cập: Bạn không có quyền thao tác trên lớp học này");
+            throw new RuntimeException("Từ chối truy cập: Bạn không có quyền thao tác");
         }
         return lopHoc;
+    }
+
+    public List<LopHoc> layDanhSachLopTheoGiaoVienId(Integer giaoVienId) {
+        return lopHocRepository.findByGiaoVienId(giaoVienId);
+    }
+
+    // =========================================================================
+    // 🚀 2 HÀM MỚI ĐỂ PHỤC VỤ CHO REACT
+    // =========================================================================
+
+    // 1. Thêm học sinh thẳng bằng Mã HS (Không cần bắt React gửi GiaoVienId nữa)
+    @Transactional
+    public void themHocSinhBangMa(Integer lopHocId, String maHocSinh) {
+        LopHoc lopHoc = lopHocRepository.findById(lopHocId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+
+        // Chú ý: Dùng findByMaHs (Tìm theo mã học sinh)
+        HocSinh hocSinh = hocSinhRepository.findByMaHS(maHocSinh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh với mã: " + maHocSinh));
+
+        if (hocSinhLopRepository.existsByLopHocIdAndHocSinhId(lopHocId, hocSinh.getId())) {
+            throw new RuntimeException("Học sinh đã có trong lớp này");
+        }
+
+        HocSinhLop hocSinhLop = new HocSinhLop();
+        hocSinhLop.setLopHoc(lopHoc);
+        hocSinhLop.setHocSinh(hocSinh);
+
+        hocSinhLopRepository.save(hocSinhLop);
+    }
+
+    // 2. Lấy danh sách học sinh của 1 lớp
+    public List<HocSinh> layDanhSachHocSinhTheoLop(Integer lopHocId) {
+        List<HocSinhLop> danhSachHocSinhLop = hocSinhLopRepository.findByLopHocId(lopHocId);
+        
+        // Trích xuất Học Sinh từ bảng trung gian HocSinhLop
+        return danhSachHocSinhLop.stream()
+                .map(HocSinhLop::getHocSinh)
+                .collect(Collectors.toList());
+    }
+    // 3. Xóa học sinh khỏi lớp (Dành riêng cho React)
+    @Transactional
+    public void xoaHocSinhKhoiLopReact(Integer lopHocId, Integer hocSinhId) {
+        HocSinhLop hocSinhLop = hocSinhLopRepository.findByLopHocIdAndHocSinhId(lopHocId, hocSinhId)
+                .orElseThrow(() -> new RuntimeException("Học sinh không thuộc lớp này"));
+        hocSinhLopRepository.delete(hocSinhLop);
     }
 }

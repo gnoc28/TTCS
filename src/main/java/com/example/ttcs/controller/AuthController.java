@@ -9,20 +9,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-// PHẢI CÓ 2 DÒNG IMPORT QUAN TRỌNG NÀY:
 import com.example.ttcs.dto.LoginRequest;
 import com.example.ttcs.dto.SignupRequest;
 import com.example.ttcs.entity.GiaoVien;
 import com.example.ttcs.entity.HocSinh;
 import com.example.ttcs.entity.NguoiDung;
-import com.example.ttcs.enums.VaiTro; // <--- Import này để dùng HOC_SINH, GV
-import com.example.ttcs.security.JwtUtils; // <--- Import này để dùng JwtUtils
+import com.example.ttcs.enums.VaiTro; 
+import com.example.ttcs.security.JwtUtils; 
 import com.example.ttcs.repository.GiaoVienRepository;
 import com.example.ttcs.repository.HocSinhRepository;
 import com.example.ttcs.repository.NguoiDungRepository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -59,8 +59,20 @@ public class AuthController {
         response.put("accessToken", jwt);
 
         String vaiTroStr = authentication.getAuthorities().iterator().next().getAuthority();
-        Map<String, String> userMap = new HashMap<>();
+        
+        // 🚀 BẮT ĐẦU NÂNG CẤP TẠI ĐÂY:
+        Map<String, Object> userMap = new HashMap<>();
         userMap.put("vaiTro", vaiTroStr.replace("ROLE_", ""));
+
+        // 1. Dùng tên đăng nhập để tìm người dùng trong Database
+        // (Lưu ý: Nếu hàm của bạn trả về Optional, hãy dùng .orElse(null) hoặc .get() tuỳ code repository của bạn)
+        NguoiDung user = nguoiDungRepository.findByTenDangNhap(loginRequest.getTenDangNhap()).orElse(null);
+        // 2. Nhét ID và Tên vào Map để gửi về cho React
+        if (user != null) {
+            userMap.put("id", user.getId()); 
+            userMap.put("tenDangNhap", user.getTenDangNhap());
+        }
+
         response.put("user", userMap);
 
         return ResponseEntity.ok(response);
@@ -82,21 +94,17 @@ public class AuthController {
             user.setVaiTro(VaiTro.HS);
         }
 
-        // Lưu nguoi_dung trước để có id
         NguoiDung savedUser = nguoiDungRepository.save(user);
 
-        // Tạo bản ghi giao_vien hoặc hoc_sinh tương ứng
         if (savedUser.getVaiTro() == VaiTro.GV) {
             GiaoVien giaoVien = new GiaoVien();
             giaoVien.setNguoiDung(savedUser);
-            // maGV = "GV" + id với format 3 chữ số: GV001, GV002...
             giaoVien.setMaGV(String.format("GV%03d", savedUser.getId()));
             giaoVienRepository.save(giaoVien);
 
         } else if (savedUser.getVaiTro() == VaiTro.HS) {
             HocSinh hocSinh = new HocSinh();
             hocSinh.setNguoiDung(savedUser);
-            // maHS = "HS" + id với format 3 chữ số: HS001, HS002...
             hocSinh.setMaHS(String.format("HS%03d", savedUser.getId()));
             hocSinhRepository.save(hocSinh);
         }

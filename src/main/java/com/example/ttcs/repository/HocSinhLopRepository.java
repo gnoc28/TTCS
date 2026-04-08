@@ -4,6 +4,7 @@ import com.example.ttcs.entity.HocSinhLop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List; // 🚀 Phải import thêm cái này
 import java.util.Optional;
 
 @Repository
@@ -14,4 +15,7 @@ public interface HocSinhLopRepository extends JpaRepository<HocSinhLop, Integer>
 
     // Tìm bản ghi học sinh - lớp học để xóa
     Optional<HocSinhLop> findByLopHocIdAndHocSinhId(Integer lopHocId, Integer hocSinhId);
+
+    // 🚀 THÊM HÀM NÀY: Để lấy toàn bộ danh sách học sinh đổ ra bảng React
+    List<HocSinhLop> findByLopHocId(Integer lopHocId);
 }
