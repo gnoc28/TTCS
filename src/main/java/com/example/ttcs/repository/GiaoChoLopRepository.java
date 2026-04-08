@@ -11,4 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface GiaoChoLopRepository extends JpaRepository<GiaoChoLop, Integer> {
 
     List<GiaoChoLop> findByLopHoc_Id(Long lopHocId);
+    
+    List<GiaoChoLop> findByDeId(Integer deId);
+
 }
