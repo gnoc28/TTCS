@@ -9,7 +9,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// đã bỏ @Getter và @Setter của Lombok đi để dùng code Java thuần
 @Entity
 @Table(name = "nguoi_dung")
 public class NguoiDung {

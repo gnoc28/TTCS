@@ -54,6 +54,16 @@ public class De {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    //them moi
+    @ManyToOne
+    @JoinColumn(name = "khoi_lop_id")
+    private KhoiLop khoiLop;
+
+    //them moi
+    @ManyToOne
+    @JoinColumn(name = "mon_hoc_id")
+    private MonHoc monHoc;
 }
 
 

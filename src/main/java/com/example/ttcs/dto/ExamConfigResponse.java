@@ -19,6 +19,8 @@ public class ExamConfigResponse {
     private Boolean daXuatBan;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer khoiLopId;
+    private Integer monHocId;
 
     // Danh sách lớp đã giao (dùng cho ExamAssignment)
     private List<GiaoChoLopDTO> giaoChoLop;

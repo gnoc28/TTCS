@@ -26,4 +26,10 @@ public class PublishExamRequest {
     // Danh sách id lớp GV muốn giao
     @JsonProperty("cacLopDaGiao")
     private List<Integer> cacLopDaGiao;
+
+    @JsonProperty("khoiLopId")
+    private Integer khoiLopId;
+
+    @JsonProperty("monHocId")
+    private Integer monHocId;
 }

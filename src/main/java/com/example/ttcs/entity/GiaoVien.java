@@ -30,6 +30,10 @@ public class GiaoVien {
     @MapsId //id của giao_vien dùng chung với id của nguoi_dung
     @JoinColumn(name = "id") //giao_vien.id = nguoi_dung.id
     private NguoiDung nguoiDung;
+
+    @ManyToOne  // them truong
+    @JoinColumn(name = "truong_id")
+    private Truong truong;
 }
 
 

@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 public interface LopHocRepository extends JpaRepository<LopHoc, Integer> {
     List<LopHoc> findByGiaoVien_NguoiDung_TenDangNhap(String tenDangNhap);
-
+    
+    List<LopHoc> findByGiaoVienId(Integer giaoVienId);
 }

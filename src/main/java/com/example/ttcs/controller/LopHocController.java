@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/lop-hoc")
@@ -16,34 +17,76 @@ public class LopHocController {
     @Autowired
     private LopHocService lopHocService;
 
-    // Phân quyền: Yêu cầu VaiTro.GV
     @PostMapping("/tao-moi")
     @PreAuthorize("hasRole('GV')")
     public ResponseEntity<?> taoLopHoc(@RequestBody LopHocRequest request) {
-        // Tạm gán giaoVienId = 1 (Sau này sẽ lấy từ Token JWT đăng nhập)
-        Integer currentGiaoVienId = 1;
-
+        Integer currentGiaoVienId = request.getGiaoVienId();
         LopHoc lopHocMoi = lopHocService.taoLopHoc(request, currentGiaoVienId);
         return ResponseEntity.ok(lopHocMoi);
     }
 
-    // Phân quyền: Yêu cầu VaiTro.GV
     @PostMapping("/{lopHocId}/them-hoc-sinh/{hocSinhId}")
     @PreAuthorize("hasRole('GV')")
-    public ResponseEntity<?> themHocSinh(@PathVariable Integer lopHocId, @PathVariable Integer hocSinhId) {
-        Integer currentGiaoVienId = 1;
+    public ResponseEntity<?> themHocSinh(
+            @PathVariable Integer lopHocId,
+            @PathVariable Integer hocSinhId,
+            @RequestParam Integer giaoVienId) {
 
-        lopHocService.themHocSinhVaoLop(lopHocId, hocSinhId, currentGiaoVienId);
+        lopHocService.themHocSinhVaoLop(lopHocId, hocSinhId, giaoVienId);
         return ResponseEntity.ok("Thêm học sinh thành công!");
     }
 
-    // Phân quyền: Yêu cầu VaiTro.GV
-    @DeleteMapping("/{lopHocId}/xoa-hoc-sinh/{hocSinhId}")
+    // Xóa học sinh khỏi lớp (Đã bỏ yêu cầu giaoVienId cho gọn)
+    @PostMapping("/{lopHocId}/xoa-hoc-sinh/{hocSinhId}")
     @PreAuthorize("hasRole('GV')")
-    public ResponseEntity<?> xoaHocSinh(@PathVariable Integer lopHocId, @PathVariable Integer hocSinhId) {
-        Integer currentGiaoVienId = 1;
+    public ResponseEntity<?> xoaHocSinhReact(
+            @PathVariable Integer lopHocId,
+            @PathVariable Integer hocSinhId) {
 
-        lopHocService.xoaHocSinhKhoiLop(lopHocId, hocSinhId, currentGiaoVienId);
+        lopHocService.xoaHocSinhKhoiLopReact(lopHocId, hocSinhId);
         return ResponseEntity.ok("Xóa học sinh thành công!");
+    }
+
+    // lấy danh sách lớp của giáo viên
+    @GetMapping("/giao-vien/{giaoVienId}")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> layDanhSachLopTheoGiaoVien(@PathVariable Integer giaoVienId) {
+        return ResponseEntity.ok(lopHocService.layDanhSachLopTheoGiaoVienId(giaoVienId));
+    }
+
+    // Lấy danh sách học sinh
+    @GetMapping("/{lopHocId}/hoc-sinh")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> layDanhSachHocSinhCuaLop(@PathVariable Integer lopHocId) {
+        // Đã gọi được hàm Service vừa viết
+        return ResponseEntity.ok(lopHocService.layDanhSachHocSinhTheoLop(lopHocId));
+    }
+
+    // Thêm học sinh bằng mã
+    @PostMapping("/{lopHocId}/them-hoc-sinh-bang-ma")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> themHocSinhBangMa(
+            @PathVariable Integer lopHocId,
+            @RequestBody java.util.Map<String, String> body) {
+
+        String maHocSinh = body.get("studentCode");
+
+        // Gọi thẳng xuống Service để lưu vào Database
+        lopHocService.themHocSinhBangMa(lopHocId, maHocSinh);
+
+        return ResponseEntity.ok("Thêm học sinh thành công vào DB!");
+    }
+
+    //hoc sinh
+    @GetMapping("/hoc-sinh/{hocSinhId}")
+    @PreAuthorize("hasRole('HS')")
+    public ResponseEntity<?> layDanhSachLopTheoHocSinh(@PathVariable Integer hocSinhId) {
+        return ResponseEntity.ok(lopHocService.layDanhSachLopTheoHocSinhId(hocSinhId));
+    }
+
+    @GetMapping("/{lopHocId}")
+    @PreAuthorize("hasAnyRole('GV', 'HS')")
+    public ResponseEntity<?> layThongTinLop(@PathVariable Integer lopHocId) {
+        return ResponseEntity.ok(lopHocService.layThongTinLop(lopHocId));
     }
 }

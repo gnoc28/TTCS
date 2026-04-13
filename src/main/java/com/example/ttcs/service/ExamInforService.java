@@ -7,12 +7,16 @@ import com.example.ttcs.dto.PublishExamRequest;
 import com.example.ttcs.entity.CauHoi;
 import com.example.ttcs.entity.De;
 import com.example.ttcs.entity.GiaoChoLop;
+import com.example.ttcs.entity.KhoiLop;
 import com.example.ttcs.entity.LopHoc;
 import com.example.ttcs.entity.LuaChon;
+import com.example.ttcs.entity.MonHoc;
 import com.example.ttcs.repository.CauHoiRepository;
 import com.example.ttcs.repository.DeRepository;
 import com.example.ttcs.repository.GiaoChoLopRepository;
+import com.example.ttcs.repository.KhoiLopRepository;
 import com.example.ttcs.repository.LuaChonRepository;
+import com.example.ttcs.repository.MonHocRepository;
 import com.example.ttcs.repository.LopHocRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,8 @@ public class ExamInforService {
     private final CauHoiRepository cauHoiRepository;
     private final LuaChonRepository luaChonRepository;
     private final LopHocRepository lopHocRepository;
+    private final KhoiLopRepository khoiLopRepository;
+    private final MonHocRepository monHocRepository;
 
     // ------------------------------------------------------------------ //
     // GET /create_exam/{id}/config
@@ -57,6 +63,8 @@ public class ExamInforService {
         response.setDaXuatBan(de.getDaXuatBan());
         response.setCreatedAt(de.getCreatedAt());
         response.setUpdatedAt(de.getUpdatedAt());
+        response.setKhoiLopId(de.getKhoiLop() != null ? de.getKhoiLop().getId() : null);
+        response.setMonHocId(de.getMonHoc() != null ? de.getMonHoc().getId() : null);
 
         // Map nguoiTao
         ExamConfigResponse.NguoiTaoDTO nguoiTaoDTO = new ExamConfigResponse.NguoiTaoDTO();
@@ -164,6 +172,18 @@ public class ExamInforService {
         de.setKetThuc(request.getKetThuc());
         de.setGioiHanNop(request.getGioiHanNop());
         de.setDaXuatBan(true);
+
+        if (request.getKhoiLopId() != null) {
+            KhoiLop khoiLop = khoiLopRepository.findById(request.getKhoiLopId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khối lớp: " + request.getKhoiLopId()));
+            de.setKhoiLop(khoiLop);
+        }
+
+        if (request.getMonHocId() != null) {
+            MonHoc monHoc = monHocRepository.findById(request.getMonHocId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học: " + request.getMonHocId()));
+            de.setMonHoc(monHoc);
+        }
 
         deRepository.save(de);
 
