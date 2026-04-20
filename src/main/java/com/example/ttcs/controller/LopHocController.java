@@ -18,60 +18,68 @@ public class LopHocController {
     private LopHocService lopHocService;
 
     @PostMapping("/tao-moi")
-    @PreAuthorize("hasRole('GV')") 
+    @PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> taoLopHoc(@RequestBody LopHocRequest request) {
-        Integer currentGiaoVienId = request.getGiaoVienId(); 
+        Integer currentGiaoVienId = request.getGiaoVienId();
         LopHoc lopHocMoi = lopHocService.taoLopHoc(request, currentGiaoVienId);
         return ResponseEntity.ok(lopHocMoi);
     }
 
     @PostMapping("/{lopHocId}/them-hoc-sinh/{hocSinhId}")
-    @PreAuthorize("hasRole('GV')")
+    @PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> themHocSinh(
-            @PathVariable Integer lopHocId, 
+            @PathVariable Integer lopHocId,
             @PathVariable Integer hocSinhId,
-            @RequestParam Integer giaoVienId) { 
-        
+            @RequestParam Integer giaoVienId) {
+
         lopHocService.themHocSinhVaoLop(lopHocId, hocSinhId, giaoVienId);
         return ResponseEntity.ok("Thêm học sinh thành công!");
     }
 
-    // 🚀 Xóa học sinh khỏi lớp (Đã bỏ yêu cầu giaoVienId cho gọn)
     @PostMapping("/{lopHocId}/xoa-hoc-sinh/{hocSinhId}")
-    @PreAuthorize("hasRole('GV')")
+    @PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> xoaHocSinhReact(
-            @PathVariable Integer lopHocId, 
-            @PathVariable Integer hocSinhId) { 
-        
+            @PathVariable Integer lopHocId,
+            @PathVariable Integer hocSinhId) {
+
         lopHocService.xoaHocSinhKhoiLopReact(lopHocId, hocSinhId);
         return ResponseEntity.ok("Xóa học sinh thành công!");
     }
 
+    // 🚀 API NÀY SẼ HẾT 403 NGAY LẬP TỨC
     @GetMapping("/giao-vien/{giaoVienId}")
-    @PreAuthorize("hasRole('GV')")
+    //@PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> layDanhSachLopTheoGiaoVien(@PathVariable Integer giaoVienId) {
         return ResponseEntity.ok(lopHocService.layDanhSachLopTheoGiaoVienId(giaoVienId));
     }
-   // Lấy danh sách học sinh
+
     @GetMapping("/{lopHocId}/hoc-sinh")
-    @PreAuthorize("hasRole('GV')")
+    @PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> layDanhSachHocSinhCuaLop(@PathVariable Integer lopHocId) {
-        // Đã gọi được hàm Service vừa viết
-        return ResponseEntity.ok(lopHocService.layDanhSachHocSinhTheoLop(lopHocId)); 
+        return ResponseEntity.ok(lopHocService.layDanhSachHocSinhTheoLop(lopHocId));
     }
 
-    // Thêm học sinh bằng mã
     @PostMapping("/{lopHocId}/them-hoc-sinh-bang-ma")
-    @PreAuthorize("hasRole('GV')")
+    @PreAuthorize("hasAuthority('ROLE_GV')") // Đã sửa
     public ResponseEntity<?> themHocSinhBangMa(
             @PathVariable Integer lopHocId,
             @RequestBody java.util.Map<String, String> body) {
-        
+
         String maHocSinh = body.get("studentCode");
-        
-        // 🚀 Lắp đạn thật: Gọi thẳng xuống Service để lưu vào Database
         lopHocService.themHocSinhBangMa(lopHocId, maHocSinh);
-        
+
         return ResponseEntity.ok("Thêm học sinh thành công vào DB!");
+    }
+
+    @GetMapping("/hoc-sinh/{hocSinhId}")
+    @PreAuthorize("hasAuthority('ROLE_HS')") // Đã sửa
+    public ResponseEntity<?> layDanhSachLopTheoHocSinh(@PathVariable Integer hocSinhId) {
+        return ResponseEntity.ok(lopHocService.layDanhSachLopTheoHocSinhId(hocSinhId));
+    }
+
+    @GetMapping("/{lopHocId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_GV', 'ROLE_HS')") // Đã sửa
+    public ResponseEntity<?> layThongTinLop(@PathVariable Integer lopHocId) {
+        return ResponseEntity.ok(lopHocService.layThongTinLop(lopHocId));
     }
 }

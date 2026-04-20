@@ -1,6 +1,7 @@
 package com.example.ttcs.controller;
 
 import com.example.ttcs.dto.GiaoBaiRequest;
+import com.example.ttcs.dto.response.DeChiTietResponse;
 import com.example.ttcs.entity.De;
 import com.example.ttcs.service.DeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,5 +36,12 @@ public class DeController {
     public ResponseEntity<?> xemBaiTapCuaLop(@PathVariable Long lopHocId) {
         List<De> danhSachDe = deService.layDanhSachBaiTapCuaLop(lopHocId);
         return ResponseEntity.ok(danhSachDe);
+    }
+
+    // API 3: Lấy chi tiết đề theo id (HS/GV/ADMIN đều xem được)
+    @GetMapping("/{deId}/chi-tiet")
+    @PreAuthorize("hasAnyRole('HS', 'GV', 'ADMIN')")
+    public ResponseEntity<DeChiTietResponse> layChiTietDe(@PathVariable Integer deId) {
+        return ResponseEntity.ok(deService.layChiTietDe(deId));
     }
 }

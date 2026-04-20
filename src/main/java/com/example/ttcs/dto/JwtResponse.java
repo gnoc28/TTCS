@@ -12,16 +12,33 @@ public class JwtResponse {
     }
 
     // --- Getters / Setters cho JwtResponse ---
-    public String getAccessToken() { return accessToken; }
-    public void setAccessToken(String accessToken) { this.accessToken = accessToken; }
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
-    public UserInfo getUser() { return user; }
-    public void setUser(UserInfo user) { this.user = user; }
+    public String getAccessToken() {
+        return accessToken;
+    }
 
-    // ==========================================
-    // LỚP NỘI BỘ: Tạo ra cấu trúc "user": { ... }
-    // ==========================================
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public UserInfo getUser() {
+        return user;
+    }
+
+    public void setUser(UserInfo user) {
+        this.user = user;
+    }
+
+    // =========================================================
+    // LỚP CON: Tạo ra cấu trúc "user": { id, tenDangNhap, vaiTro }
+    // =========================================================
     public static class UserInfo {
         private Integer id;
         private String tenDangNhap;
@@ -34,11 +51,28 @@ public class JwtResponse {
         }
 
         // --- Getters / Setters cho UserInfo ---
-        public Integer getId() { return id; }
-        public void setId(Integer id) { this.id = id; }
-        public String getTenDangNhap() { return tenDangNhap; }
-        public void setTenDangNhap(String tenDangNhap) { this.tenDangNhap = tenDangNhap; }
-        public String getVaiTro() { return vaiTro; }
-        public void setVaiTro(String vaiTro) { this.vaiTro = vaiTro; }
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getTenDangNhap() {
+            return tenDangNhap;
+        }
+
+        public void setTenDangNhap(String tenDangNhap) {
+            this.tenDangNhap = tenDangNhap;
+        }
+
+        public String getVaiTro() {
+            return vaiTro;
+        }
+
+        public void setVaiTro(String vaiTro) {
+            this.vaiTro = vaiTro;
+        }
     }
 }

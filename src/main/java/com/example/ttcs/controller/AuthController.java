@@ -14,15 +14,14 @@ import com.example.ttcs.dto.SignupRequest;
 import com.example.ttcs.entity.GiaoVien;
 import com.example.ttcs.entity.HocSinh;
 import com.example.ttcs.entity.NguoiDung;
-import com.example.ttcs.enums.VaiTro; 
-import com.example.ttcs.security.JwtUtils; 
+import com.example.ttcs.enums.VaiTro;
+import com.example.ttcs.security.JwtUtils;
 import com.example.ttcs.repository.GiaoVienRepository;
 import com.example.ttcs.repository.HocSinhRepository;
 import com.example.ttcs.repository.NguoiDungRepository;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -59,17 +58,17 @@ public class AuthController {
         response.put("accessToken", jwt);
 
         String vaiTroStr = authentication.getAuthorities().iterator().next().getAuthority();
-        
-        // 🚀 BẮT ĐẦU NÂNG CẤP TẠI ĐÂY:
+
+        // BẮT ĐẦU NÂNG CẤP TẠI ĐÂY:
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("vaiTro", vaiTroStr.replace("ROLE_", ""));
 
         // 1. Dùng tên đăng nhập để tìm người dùng trong Database
-        // (Lưu ý: Nếu hàm của bạn trả về Optional, hãy dùng .orElse(null) hoặc .get() tuỳ code repository của bạn)
         NguoiDung user = nguoiDungRepository.findByTenDangNhap(loginRequest.getTenDangNhap()).orElse(null);
+        
         // 2. Nhét ID và Tên vào Map để gửi về cho React
         if (user != null) {
-            userMap.put("id", user.getId()); 
+            userMap.put("id", user.getId());
             userMap.put("tenDangNhap", user.getTenDangNhap());
         }
 
