@@ -86,17 +86,36 @@ public class BaiGiangController {
     }
 
     // ==========================================
-    // API 3: CHO HỌC SINH - Lấy danh sách bài giảng theo Lớp
+    // API 3: CHO HỌC SINH - Lấy danh sách bài giảng theo Lớp (ĐÃ FIX KÈM FILE)
     // ==========================================
     @GetMapping("/lop-hoc/{idLopHoc}")
     public ResponseEntity<?> layBaiGiangCuaLop(@PathVariable Integer idLopHoc) {
         try {
             var danhSachGiao = bgLopHocRepo.findByLopHocId(idLopHoc);
-            java.util.List<BaiGiang> danhSachBaiGiang = new java.util.ArrayList<>();
+            
+            // Tạo một danh sách các "Hộp" chứa cả Bài Giảng + File
+            java.util.List<java.util.Map<String, Object>> danhSachKetQua = new java.util.ArrayList<>();
+            
             for (BaiGiangLopHoc bglh : danhSachGiao) {
-                danhSachBaiGiang.add(bglh.getBaiGiang());
+                BaiGiang bg = bglh.getBaiGiang();
+                
+                // 🚀 QUAN TRỌNG NHẤT: Bắt Java đi tìm file của bài giảng này
+                var danhSachFile = fileRepo.findByBaiGiangId(bg.getId());
+                
+                // Đóng gói chúng nó lại thành 1 cục
+                java.util.Map<String, Object> bgMap = new java.util.HashMap<>();
+                bgMap.put("id", bg.getId());
+                bgMap.put("tieuDe", bg.getTieuDe());
+                bgMap.put("noiDung", bg.getNoiDung());
+                // Nếu entity của ông có createdAt thì mở comment dòng dưới:
+                // bgMap.put("createdAt", bg.getCreatedAt()); 
+                
+                // Nhét mảng file vào đây để React nhận được
+                bgMap.put("danhSachFile", danhSachFile); 
+                
+                danhSachKetQua.add(bgMap);
             }
-            return ResponseEntity.ok(danhSachBaiGiang);
+            return ResponseEntity.ok(danhSachKetQua);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
         }
@@ -121,6 +140,66 @@ public class BaiGiangController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
+        }
+    }
+    // ==========================================
+    // API 5: XÓA BÀI GIẢNG
+    // ==========================================
+    @DeleteMapping("/xoa/{id}")
+    public ResponseEntity<?> xoaBaiGiang(@PathVariable Integer id) {
+        try {
+            if (!baiGiangRepo.existsById(id)) {
+                return ResponseEntity.badRequest().body("Bài giảng không tồn tại!");
+            }
+            baiGiangRepo.deleteById(id);
+            return ResponseEntity.ok("Đã xóa bài giảng thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // API 6: SỬA BÀI GIẢNG (ĐÃ FIX: Cập nhật cả File)
+    // ==========================================
+    @PutMapping("/sua/{id}")
+    public ResponseEntity<?> suaBaiGiang(@PathVariable Integer id, @RequestBody BaiGiangRequest request) {
+        try {
+            BaiGiang bg = baiGiangRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Bài giảng"));
+            
+            // 1. Cập nhật Tiêu đề và Nội dung
+            bg.setTieuDe(request.getTieuDe());
+            bg.setNoiDung(request.getNoiDung());
+            baiGiangRepo.save(bg);
+
+            // 2. Cập nhật File: Xóa hết file cũ của bài giảng này để ghi đè cái mới
+            // Tìm tất cả file cũ của bài giảng này
+            var fileCu = fileRepo.findByBaiGiangId(id);
+            if (fileCu != null && !fileCu.isEmpty()) {
+                fileRepo.deleteAll(fileCu);
+            }
+
+            // 3. Lưu danh sách File mới (y hệt logic lúc Tạo mới)
+            if (request.getDanhSachFile() != null) {
+                for (BaiGiangRequest.FileDto fileDto : request.getDanhSachFile()) {
+                    FileBaiGiang file = new FileBaiGiang();
+                    file.setTieuDe(fileDto.getTenFile());
+                    file.setDuongDan(fileDto.getUrlFile());
+                    
+                    try {
+                        file.setLoaiFile(com.example.ttcs.enums.LoaiFile.valueOf(fileDto.getLoaiFile()));
+                    } catch (Exception e) {
+                        file.setLoaiFile(com.example.ttcs.enums.LoaiFile.url);
+                    }
+                    
+                    file.setBaiGiang(bg);
+                    fileRepo.save(file);
+                }
+            }
+            
+            return ResponseEntity.ok("Cập nhật bài giảng và tài liệu thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi cập nhật: " + e.getMessage());
         }
     }
 }
