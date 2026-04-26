@@ -224,4 +224,15 @@ public class ExamInforService {
                 })
                 .collect(Collectors.toList());
     }
+
+    //hs tự tạo đề
+    @Transactional
+    public void updateDuration(Integer deId, String username, Integer thoiGian) {
+        De de = deRepository.findById(deId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đề: " + deId));
+        if (!de.getNguoiTao().getTenDangNhap().equals(username))
+            throw new RuntimeException("Không có quyền");
+        de.setThoiGian(thoiGian);
+        deRepository.save(de);
+    }
 }

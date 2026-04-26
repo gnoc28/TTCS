@@ -129,6 +129,17 @@ public class DeService {
         response.setSoCauHoi(cauHoiResponses.size());
         response.setTongDiem(tongDiem);
         response.setCauHois(cauHoiResponses);
+        response.setNguoiTaoTen(de.getNguoiTao().getTen());
+        response.setCreatedAt(de.getCreatedAt());
         return response;
+    }
+
+    // Lấy danh sách đề đã giao của giáo viên
+    public List<GiaoChoLop> layDanhSachDeGiaoTheoGiaoVien(Integer giaoVienId) {
+        // Lấy tất cả GiaoChoLop có de.nguoiTao.id = giaoVienId
+        return giaoChoLopRepository.findAll().stream()
+                .filter(gcl -> gcl.getDe() != null && gcl.getDe().getNguoiTao() != null &&
+                        gcl.getDe().getNguoiTao().getId().equals(giaoVienId))
+                .toList();
     }
 }

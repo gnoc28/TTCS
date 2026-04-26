@@ -22,4 +22,6 @@ public class DeChiTietResponse {
     private Integer soCauHoi;
     private BigDecimal tongDiem;
     private List<CauHoiDeChiTietResponse> cauHois;
+    private String nguoiTaoTen;
+    private LocalDateTime createdAt;
 }

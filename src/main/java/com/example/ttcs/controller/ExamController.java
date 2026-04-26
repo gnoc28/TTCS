@@ -101,6 +101,16 @@ public class ExamController {
                 createExamService.deleteExam(id, userDetails.getUsername());
                 return ResponseEntity.ok().build();
         }
+
+        //hs tự tạo đề
+        @PatchMapping("/create_exam/{id}/duration")
+        public ResponseEntity<?> updateDuration(
+                        @PathVariable Integer id,
+                        @RequestParam Integer thoiGian,
+                        @AuthenticationPrincipal UserDetails userDetails) {
+                examInforService.updateDuration(id, userDetails.getUsername(), thoiGian);
+                return ResponseEntity.ok().build();
+        }
 }
 // POST/create_exam(JWT→username)│▼ExamController└─
 

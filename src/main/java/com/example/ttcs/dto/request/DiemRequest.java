@@ -9,6 +9,7 @@ import java.util.List;
 public class DiemRequest {
     private Integer hocSinhId;
     private Integer deId;
+    private Integer lopId; // Thêm trường này để xác định lớp khi nộp bài
     private LocalDateTime thoiGianBatDau;
     private List<CauTraLoiRequest> cauTraLoi;
 }

@@ -21,4 +21,5 @@ public interface HocSinhLopRepository extends JpaRepository<HocSinhLop, Integer>
 
     List<HocSinhLop> findByHocSinhId(Integer hocSinhId);
 
+    int countByLopHocId(Integer lopId);
 }

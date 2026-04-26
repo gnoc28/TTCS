@@ -44,4 +44,12 @@ public class DeController {
     public ResponseEntity<DeChiTietResponse> layChiTietDe(@PathVariable Integer deId) {
         return ResponseEntity.ok(deService.layChiTietDe(deId));
     }
+
+    // API: Lấy danh sách đề đã giao của giáo viên
+    @GetMapping("/giao-vien/{giaoVienId}")
+    @PreAuthorize("hasAnyRole('GV', 'ADMIN')")
+    public ResponseEntity<?> getDeThiGiaoByGiaoVien(@PathVariable Integer giaoVienId) {
+        // Lấy tất cả GiaoChoLop có de.nguoiTao.id = giaoVienId
+        return ResponseEntity.ok(deService.layDanhSachDeGiaoTheoGiaoVien(giaoVienId));
+    }
 }

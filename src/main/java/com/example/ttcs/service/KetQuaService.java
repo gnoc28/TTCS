@@ -2,7 +2,9 @@ package com.example.ttcs.service;
 
 import com.example.ttcs.dto.request.CauTraLoiRequest;
 import com.example.ttcs.dto.request.DiemRequest;
+import com.example.ttcs.dto.request.ThongKeRequest;
 import com.example.ttcs.dto.response.KetQuaResponse;
+import com.example.ttcs.dto.response.ThongKeResponse;
 import com.example.ttcs.entity.*;
 import com.example.ttcs.enums.MucDo;
 import com.example.ttcs.repository.*;
@@ -13,11 +15,17 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class KetQuaService {
     @Autowired
     private HocSinhRepository hocSinhRepository;
+
+    @Autowired
+    private HocSinhLopRepository hocSinhLopRepository;
+
     @Autowired
     private DeRepository deRepository;
 
@@ -32,6 +40,7 @@ public class KetQuaService {
 
     @Autowired
     private ChiTietKetQuaRepository chiTietKetQuaRepository;
+    
 
     public KetQuaResponse chamDiem(DiemRequest request) {
         // 1) Validate dữ liệu đầu vào chính (học sinh, đề)
@@ -39,6 +48,15 @@ public class KetQuaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
         De de = deRepository.findById(request.getDeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề"));
+        // HocSinhLop hocSinhLop = hocSinhLopRepository
+        //         .findByLopHocIdAndHocSinhId(request.getLopId(), request.getHocSinhId())
+        //         .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi học sinh-lớp phù hợp"));
+        HocSinhLop hocSinhLop = null;
+        if (request.getLopId() != null) {
+            hocSinhLop = hocSinhLopRepository
+                    .findByLopHocIdAndHocSinhId(request.getLopId(), request.getHocSinhId())
+                    .orElse(null);
+        }
 
         // 2) Chốt mốc thời gian bắt đầu/nộp để lưu lịch sử làm bài
         LocalDateTime thoiGianNop = LocalDateTime.now();
@@ -54,6 +72,11 @@ public class KetQuaService {
         kq.setDe(de);
         kq.setThoiGianBatDau(thoiGianBatDau);
         kq.setThoiGianNop(thoiGianNop);
+        // kq.setHocSinhLop(hocSinhLop);
+        if (hocSinhLop != null) {
+            kq.setHocSinhLop(hocSinhLop);
+        }
+
         // đếm số lần làm
         Integer lanThuMoi = ketQuaRepository.findTopByHocSinhIdAndDeIdOrderByLanThuDesc(hocSinh.getId(), de.getId())
                 .map(kqCu -> kqCu.getLanThu() + 1)
