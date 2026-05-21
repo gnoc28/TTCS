@@ -10,6 +10,8 @@ import com.example.ttcs.enums.MucDo;
 import com.example.ttcs.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -40,6 +42,9 @@ public class KetQuaService {
 
     @Autowired
     private ChiTietKetQuaRepository chiTietKetQuaRepository;
+
+    @Autowired
+    private FeedbackGenerationService feedbackGenerationService;
     
 
     public KetQuaResponse chamDiem(DiemRequest request) {
@@ -48,6 +53,7 @@ public class KetQuaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
         De de = deRepository.findById(request.getDeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề"));
+
         // HocSinhLop hocSinhLop = hocSinhLopRepository
         //         .findByLopHocIdAndHocSinhId(request.getLopId(), request.getHocSinhId())
         //         .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi học sinh-lớp phù hợp"));
@@ -123,7 +129,13 @@ public class KetQuaService {
 
         // 4) Sinh nhận xét tự động và lưu cùng kết quả
         long thoiGianLamGiay = Duration.between(thoiGianBatDau, thoiGianNop).getSeconds();
-        String nhanXetHeThong = buildNhanXetHeThong(dungTheoMucDo, tongTheoMucDo);
+        double thongHieuPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.TH);
+        double vanDungPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VD);
+        double vanDungCaoPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VDC);
+        String nhanXetHeThong = feedbackGenerationService.generateSystemFeedback(
+            thongHieuPercent,
+            vanDungPercent,
+            vanDungCaoPercent);
         kq.setNhanXetHeThong(nhanXetHeThong);
         ketQuaRepository.save(kq);
 
@@ -137,47 +149,6 @@ public class KetQuaService {
                 nhanXetHeThong);
     }
 
-    // Rule nhận xét theo tỷ lệ đúng ở 4 mức NB/TH/VD/VDC
-    private String buildNhanXetHeThong(Map<MucDo, Integer> dungTheoMucDo, Map<MucDo, Integer> tongTheoMucDo) {
-        Double nb = tongTheoMucDo.getOrDefault(MucDo.NB, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.NB)
-                : null;
-        Double th = tongTheoMucDo.getOrDefault(MucDo.TH, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.TH)
-                : null;
-        Double vd = tongTheoMucDo.getOrDefault(MucDo.VD, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VD)
-                : null;
-        Double vdc = tongTheoMucDo.getOrDefault(MucDo.VDC, 0) > 0
-                ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VDC)
-                : null;
-
-        StringBuilder sb = new StringBuilder();
-
-        if (nb != null && nb < 70) {
-            sb.append("Nền tảng NB chưa vững, nên ôn lại kiến thức cốt lõi. ");
-        } else if (nb != null && th != null && nb >= 80 && th < 60) {
-            sb.append("NB tốt nhưng TH còn yếu, cần luyện nhóm câu hỏi thông hiểu. ");
-        } else if (nb != null && th != null && nb >= 80 && th >= 70) {
-            sb.append("Nền tảng NB/TH khá tốt. ");
-        }
-
-        if (vd != null && vd < 50) {
-            sb.append("VD còn thấp, nên tăng bài tập phân tích nhiều bước. ");
-        } else if (vd != null && vd >= 70) {
-            sb.append("VD tốt, có thể tăng dần câu hỏi khó. ");
-        }
-
-        if (vdc != null && vdc < 40) {
-            sb.append("VDC chưa ổn định, nên củng cố NB-TH-VD trước khi đẩy độ khó. ");
-        } else if (vdc != null && vdc >= 60) {
-            sb.append("VDC đạt mức tốt, có thể luyện đề nâng cao theo chuyên đề. ");
-        }
-
-        if (sb.length() == 0) {
-            return "Kết quả ổn định, hãy duy trì nhịp luyện tập hiện tại.";
-        }
-
-        return sb.toString().trim();
-    }
-
     // Hàm chỉ dùng khi mức độ đã có ít nhất 1 câu hỏi
     private double tyLeDung(Map<MucDo, Integer> dungTheoMucDo, Map<MucDo, Integer> tongTheoMucDo, MucDo mucDo) {
         int tong = tongTheoMucDo.getOrDefault(mucDo, 0);
@@ -187,4 +158,6 @@ public class KetQuaService {
         int dung = dungTheoMucDo.getOrDefault(mucDo, 0);
         return (dung * 100.0) / tong;
     }
+
+
 }

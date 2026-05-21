@@ -41,11 +41,19 @@ public class ThongKeService {
         } else {
             lopId = req.lopId;
         }
-        // Lọc danh sách kết quả theo đề và lớp
+        // Lọc danh sách kết quả theo đề và lớp, chỉ lấy kết quả cao nhất của mỗi học sinh
         List<KetQua> result = ketQuaRepository.findAll().stream()
                 .filter(kq -> kq.getDe() != null && kq.getDe().getId().equals(req.deId)
                         && kq.getHocSinhLop() != null && kq.getHocSinhLop().getLopHoc() != null
                         && kq.getHocSinhLop().getLopHoc().getId().equals(lopId))
+                .collect(Collectors.groupingBy(
+                    kq -> kq.getHocSinh().getId(),
+                    Collectors.maxBy(Comparator.comparing(kq -> kq.getDiemSo() != null ? kq.getDiemSo().doubleValue() : 0.0))
+                ))
+                .values()
+                .stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList();
 
         // Tính tổng số bài nộp, điểm TB, điểm cao nhất, tổng số học sinh
@@ -69,7 +77,7 @@ public class ThongKeService {
         int soHocSinhHoanThanh = hocSinhLopIdsDaNop.size();
         double completionRate = (totalStudents > 0) ? ((double) soHocSinhHoanThanh / totalStudents) : 1.0;
         // Phân phối điểm số thành các khoảng (0-2, 2-4, ...)
-        int[] scoreDistribution = new int[6];
+        int[] scoreDistribution = new int[5];
         for (KetQua kq : result) {
             double score = kq.getDiemSo() != null ? kq.getDiemSo().doubleValue() : 0;
             if (score <= 2)
@@ -80,10 +88,8 @@ public class ThongKeService {
                 scoreDistribution[2]++;
             else if (score <= 8)
                 scoreDistribution[3]++;
-            else if (score <= 10)
-                scoreDistribution[4]++;
             else
-                scoreDistribution[5]++;
+                scoreDistribution[4]++;
         }
         // Tạo danh sách học sinh đã nộp bài với thông tin chi tiết
         var students = result.stream().map(kq -> new java.util.HashMap<String, Object>() {
@@ -98,9 +104,9 @@ public class ThongKeService {
                 put("score", kq.getDiemSo());
                 if (kq.getThoiGianBatDau() != null && kq.getThoiGianNop() != null) {
                     long seconds = java.time.Duration.between(kq.getThoiGianBatDau(), kq.getThoiGianNop()).getSeconds();
-                    put("time", Math.round(seconds / 60.0));
+                    put("time", seconds);
                 } else {
-                    put("time", "-");
+                    put("time", 0);
                 }
             }
         }).toList();
@@ -153,7 +159,6 @@ public class ThongKeService {
         thongKe.put("hardestQuestions", hardestQuestions);
         thongKe.put("students", students);
 
-        // Lấy tên đề (tieuDe) từ DeRepository
         String tieuDe = null;
         if (req.deId != null) {
             Optional<De> deOpt = deRepository.findById(req.deId);

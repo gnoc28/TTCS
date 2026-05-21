@@ -17,8 +17,11 @@ import com.example.ttcs.repository.LuaChonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +80,16 @@ public class DeService {
         De de = deRepository.findById(deId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề thi!"));
 
+        if (shouldEnforceExamWindow()) {
+            LocalDateTime now = LocalDateTime.now();
+            if (de.getBatDau() != null && now.isBefore(de.getBatDau())) {
+                throw new RuntimeException("Chưa đến thời gian làm bài");
+            }
+            if (de.getKetThuc() != null && now.isAfter(de.getKetThuc())) {
+                throw new RuntimeException("Quá hạn làm bài");
+            }
+        }
+
         List<CauHoi> cauHois = cauHoiRepository.findByDeIdOrderByThuTuAsc(deId);
         List<Integer> cauHoiIds = cauHois.stream().map(CauHoi::getId).toList();
 
@@ -134,6 +147,7 @@ public class DeService {
         return response;
     }
 
+
     // Lấy danh sách đề đã giao của giáo viên
     public List<GiaoChoLop> layDanhSachDeGiaoTheoGiaoVien(Integer giaoVienId) {
         // Lấy tất cả GiaoChoLop có de.nguoiTao.id = giaoVienId
@@ -141,5 +155,15 @@ public class DeService {
                 .filter(gcl -> gcl.getDe() != null && gcl.getDe().getNguoiTao() != null &&
                         gcl.getDe().getNguoiTao().getId().equals(giaoVienId))
                 .toList();
+    }
+
+    private boolean shouldEnforceExamWindow() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return true;
+        }
+
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_HS".equals(authority.getAuthority()));
     }
 }
