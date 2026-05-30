@@ -54,9 +54,6 @@ public class KetQuaService {
         De de = deRepository.findById(request.getDeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề"));
 
-        // HocSinhLop hocSinhLop = hocSinhLopRepository
-        //         .findByLopHocIdAndHocSinhId(request.getLopId(), request.getHocSinhId())
-        //         .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi học sinh-lớp phù hợp"));
         HocSinhLop hocSinhLop = null;
         if (request.getLopId() != null) {
             hocSinhLop = hocSinhLopRepository
@@ -78,7 +75,7 @@ public class KetQuaService {
         kq.setDe(de);
         kq.setThoiGianBatDau(thoiGianBatDau);
         kq.setThoiGianNop(thoiGianNop);
-        // kq.setHocSinhLop(hocSinhLop);
+        
         if (hocSinhLop != null) {
             kq.setHocSinhLop(hocSinhLop);
         }
@@ -129,13 +126,21 @@ public class KetQuaService {
 
         // 4) Sinh nhận xét tự động và lưu cùng kết quả
         long thoiGianLamGiay = Duration.between(thoiGianBatDau, thoiGianNop).getSeconds();
+        
+        // BỔ SUNG: Tính % của cả 4 mức độ (Nếu mức độ nào không có câu hỏi, sẽ trả về -1)
+        double nhanBietPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.NB);
         double thongHieuPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.TH);
         double vanDungPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VD);
         double vanDungCaoPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VDC);
+
+        // Truyền 4 tham số vào để "bắt bệnh"
         String nhanXetHeThong = feedbackGenerationService.generateSystemFeedback(
-            thongHieuPercent,
-            vanDungPercent,
-            vanDungCaoPercent);
+            nhanBietPercent, 
+            thongHieuPercent, 
+            vanDungPercent, 
+            vanDungCaoPercent
+        );
+        
         kq.setNhanXetHeThong(nhanXetHeThong);
         ketQuaRepository.save(kq);
 
@@ -149,15 +154,21 @@ public class KetQuaService {
                 nhanXetHeThong);
     }
 
-    // Hàm chỉ dùng khi mức độ đã có ít nhất 1 câu hỏi
+    // ĐÃ SỬA: Quy ước trả về -1 nếu đề thi không có câu hỏi ở mức độ này
     private double tyLeDung(Map<MucDo, Integer> dungTheoMucDo, Map<MucDo, Integer> tongTheoMucDo, MucDo mucDo) {
         int tong = tongTheoMucDo.getOrDefault(mucDo, 0);
         if (tong == 0) {
-            return 0.0;
+            return -1.0; 
         }
         int dung = dungTheoMucDo.getOrDefault(mucDo, 0);
         return (dung * 100.0) / tong;
     }
-
-
+    // API dành riêng cho Giáo viên: Lưu nhận xét thủ công
+    public void luuNhanXetGiaoVien(Integer ketQuaId, String nhanXet) {
+        KetQua kq = ketQuaRepository.findById(ketQuaId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy kết quả bài làm!"));
+        
+        kq.setNhanXetGiaoVien(nhanXet);
+        ketQuaRepository.save(kq);
+    }
 }

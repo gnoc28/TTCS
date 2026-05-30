@@ -39,4 +39,12 @@ public class KetQuaController {
     public ResponseEntity<?> thongKeKetQuaTheoDeVaLopOrHocSinhLop(@RequestBody ThongKeRequest req) {
         return ResponseEntity.ok(thongKeService.thongKeKetQuaTheoDeVaLopOrHocSinhLop(req));
     }
+    @PutMapping("/{id}/giao-vien-nhan-xet")
+    @PreAuthorize("hasAnyRole('GV', 'ADMIN')")
+    public ResponseEntity<?> luuNhanXetGiaoVien(@PathVariable Integer id, @RequestBody java.util.Map<String, String> body) {
+        String nhanXet = body.get("nhanXetGiaoVien");
+        ketQuaService.luuNhanXetGiaoVien(id, nhanXet);
+        
+        return ResponseEntity.ok(java.util.Map.of("message", "Lưu nhận xét thành công!"));
+    }
 }
