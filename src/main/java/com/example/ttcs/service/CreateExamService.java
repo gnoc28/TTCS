@@ -12,7 +12,10 @@ import com.example.ttcs.enums.MucDo;
 import com.example.ttcs.enums.PhamViGiao;
 import com.example.ttcs.enums.VaiTro;
 import com.example.ttcs.repository.CauHoiRepository;
+import com.example.ttcs.repository.ChiTietKetQuaRepository;
 import com.example.ttcs.repository.DeRepository;
+import com.example.ttcs.repository.GiaoChoLopRepository;
+import com.example.ttcs.repository.KetQuaRepository;
 import com.example.ttcs.repository.LuaChonRepository;
 import com.example.ttcs.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +38,9 @@ public class CreateExamService {
     private final CauHoiRepository cauHoiRepository;
     private final LuaChonRepository luaChonRepository;
     private final NguoiDungRepository nguoiDungRepository;
+    private final ChiTietKetQuaRepository chiTietKetQuaRepository;
+    private final KetQuaRepository ketQuaRepository;
+    private final GiaoChoLopRepository giaoChoLopRepository;
 
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -157,6 +163,24 @@ public class CreateExamService {
             throw new RuntimeException("Bạn không có quyền xóa đề này");
         }
 
-        deRepository.delete(de);
+        // deRepository.delete(de);
+
+        // 1. Xóa ChiTietKetQua (tham chiếu đến cả KetQua lẫn CauHoi)
+        chiTietKetQuaRepository.deleteByCauHoiDeId(deId);
+
+        // 2. Xóa KetQua
+        ketQuaRepository.deleteByDeId(deId);
+
+        // 3. Xóa GiaoChoLop
+        giaoChoLopRepository.deleteByDeId(deId);
+
+        // 4. Xóa LuaChon (con của CauHoi)
+        luaChonRepository.deleteByCauHoiDeId(deId);
+
+        // 5. Xóa CauHoi
+        cauHoiRepository.deleteByDeId(deId);
+
+        // 6. Xóa De
+        deRepository.deleteById(deId);
     }
 }

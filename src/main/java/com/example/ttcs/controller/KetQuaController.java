@@ -39,4 +39,28 @@ public class KetQuaController {
     public ResponseEntity<?> thongKeKetQuaTheoDeVaLopOrHocSinhLop(@RequestBody ThongKeRequest req) {
         return ResponseEntity.ok(thongKeService.thongKeKetQuaTheoDeVaLopOrHocSinhLop(req));
     }
+    
+    @PutMapping("/{id}/giao-vien-nhan-xet")
+    @PreAuthorize("hasAnyRole('GV', 'ADMIN')")
+    public ResponseEntity<?> luuNhanXetGiaoVien(@PathVariable Integer id,
+            @RequestBody java.util.Map<String, String> body) {
+        String nhanXet = body.get("nhanXetGiaoVien");
+        ketQuaService.luuNhanXetGiaoVien(id, nhanXet);
+
+        return ResponseEntity.ok(java.util.Map.of("message", "Lưu nhận xét thành công!"));
+    }
+
+    // GET /api/ket-qua/{id}/info — lấy thông tin + feedback đầy đủ
+    @GetMapping("/{id}/info")
+    public ResponseEntity<?> getKetQuaInfo(@PathVariable Integer id) {
+        return ResponseEntity.ok(ketQuaService.getKetQuaInfo(id));
+    }
+
+    // GET /api/ket-qua/lich-su?hocSinhId=X&deId=Y — lịch sử làm bài
+    @GetMapping("/lich-su")
+    public ResponseEntity<?> lichSuLamBai(
+            @RequestParam Integer hocSinhId,
+            @RequestParam Integer deId) {
+        return ResponseEntity.ok(ketQuaService.getLichSuLamBai(hocSinhId, deId));
+    }
 }

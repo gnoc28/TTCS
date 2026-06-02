@@ -10,11 +10,11 @@ import com.example.ttcs.enums.MucDo;
 import com.example.ttcs.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,7 +40,9 @@ public class KetQuaService {
 
     @Autowired
     private ChiTietKetQuaRepository chiTietKetQuaRepository;
-    
+
+    @Autowired
+    private FeedbackGenerationService feedbackGenerationService;
 
     public KetQuaResponse chamDiem(DiemRequest request) {
         // 1) Validate dữ liệu đầu vào chính (học sinh, đề)
@@ -48,9 +50,7 @@ public class KetQuaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học sinh"));
         De de = deRepository.findById(request.getDeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề"));
-        // HocSinhLop hocSinhLop = hocSinhLopRepository
-        //         .findByLopHocIdAndHocSinhId(request.getLopId(), request.getHocSinhId())
-        //         .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi học sinh-lớp phù hợp"));
+
         HocSinhLop hocSinhLop = null;
         if (request.getLopId() != null) {
             hocSinhLop = hocSinhLopRepository
@@ -72,7 +72,6 @@ public class KetQuaService {
         kq.setDe(de);
         kq.setThoiGianBatDau(thoiGianBatDau);
         kq.setThoiGianNop(thoiGianNop);
-        // kq.setHocSinhLop(hocSinhLop);
         if (hocSinhLop != null) {
             kq.setHocSinhLop(hocSinhLop);
         }
@@ -123,7 +122,18 @@ public class KetQuaService {
 
         // 4) Sinh nhận xét tự động và lưu cùng kết quả
         long thoiGianLamGiay = Duration.between(thoiGianBatDau, thoiGianNop).getSeconds();
-        String nhanXetHeThong = buildNhanXetHeThong(dungTheoMucDo, tongTheoMucDo);
+
+        // BỔ SUNG: Tính % của cả 4 mức độ (Nếu mức độ nào không có câu hỏi, sẽ trả về
+        // -1)
+        double nhanBietPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.NB);
+        double thongHieuPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.TH);
+        double vanDungPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VD);
+        double vanDungCaoPercent = tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VDC);
+        String nhanXetHeThong = feedbackGenerationService.generateSystemFeedback(
+                nhanBietPercent,
+                thongHieuPercent,
+                vanDungPercent,
+                vanDungCaoPercent);
         kq.setNhanXetHeThong(nhanXetHeThong);
         ketQuaRepository.save(kq);
 
@@ -137,54 +147,78 @@ public class KetQuaService {
                 nhanXetHeThong);
     }
 
-    // Rule nhận xét theo tỷ lệ đúng ở 4 mức NB/TH/VD/VDC
-    private String buildNhanXetHeThong(Map<MucDo, Integer> dungTheoMucDo, Map<MucDo, Integer> tongTheoMucDo) {
-        Double nb = tongTheoMucDo.getOrDefault(MucDo.NB, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.NB)
-                : null;
-        Double th = tongTheoMucDo.getOrDefault(MucDo.TH, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.TH)
-                : null;
-        Double vd = tongTheoMucDo.getOrDefault(MucDo.VD, 0) > 0 ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VD)
-                : null;
-        Double vdc = tongTheoMucDo.getOrDefault(MucDo.VDC, 0) > 0
-                ? tyLeDung(dungTheoMucDo, tongTheoMucDo, MucDo.VDC)
-                : null;
-
-        StringBuilder sb = new StringBuilder();
-
-        if (nb != null && nb < 70) {
-            sb.append("Nền tảng NB chưa vững, nên ôn lại kiến thức cốt lõi. ");
-        } else if (nb != null && th != null && nb >= 80 && th < 60) {
-            sb.append("NB tốt nhưng TH còn yếu, cần luyện nhóm câu hỏi thông hiểu. ");
-        } else if (nb != null && th != null && nb >= 80 && th >= 70) {
-            sb.append("Nền tảng NB/TH khá tốt. ");
-        }
-
-        if (vd != null && vd < 50) {
-            sb.append("VD còn thấp, nên tăng bài tập phân tích nhiều bước. ");
-        } else if (vd != null && vd >= 70) {
-            sb.append("VD tốt, có thể tăng dần câu hỏi khó. ");
-        }
-
-        if (vdc != null && vdc < 40) {
-            sb.append("VDC chưa ổn định, nên củng cố NB-TH-VD trước khi đẩy độ khó. ");
-        } else if (vdc != null && vdc >= 60) {
-            sb.append("VDC đạt mức tốt, có thể luyện đề nâng cao theo chuyên đề. ");
-        }
-
-        if (sb.length() == 0) {
-            return "Kết quả ổn định, hãy duy trì nhịp luyện tập hiện tại.";
-        }
-
-        return sb.toString().trim();
-    }
-
-    // Hàm chỉ dùng khi mức độ đã có ít nhất 1 câu hỏi
+    // Quy ước trả về -1 nếu đề thi không có câu hỏi ở mức độ này
     private double tyLeDung(Map<MucDo, Integer> dungTheoMucDo, Map<MucDo, Integer> tongTheoMucDo, MucDo mucDo) {
         int tong = tongTheoMucDo.getOrDefault(mucDo, 0);
         if (tong == 0) {
-            return 0.0;
+            return -1.0;
         }
         int dung = dungTheoMucDo.getOrDefault(mucDo, 0);
         return (dung * 100.0) / tong;
     }
+
+    // API dành riêng cho Giáo viên: Lưu nhận xét thủ công
+    public void luuNhanXetGiaoVien(Integer ketQuaId, String nhanXet) {
+        KetQua kq = ketQuaRepository.findById(ketQuaId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy kết quả bài làm!"));
+
+        kq.setNhanXetGiaoVien(nhanXet);
+        ketQuaRepository.save(kq);
+    }
+
+    // Lấy thông tin 1 lần nộp (dùng cho teacher "Xem chi tiết")
+    public Map<String, Object> getKetQuaInfo(Integer ketQuaId) {
+        KetQua kq = ketQuaRepository.findById(ketQuaId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy kết quả"));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("ketQuaId", kq.getId());
+        result.put("lanThu", kq.getLanThu());
+        result.put("diemSo", kq.getDiemSo());
+        result.put("nhanXetHeThong", kq.getNhanXetHeThong());
+        result.put("nhanXetGiaoVien", kq.getNhanXetGiaoVien());
+        result.put("thoiGianBatDau", kq.getThoiGianBatDau());
+        result.put("thoiGianNop", kq.getThoiGianNop());
+
+        long giay = (kq.getThoiGianBatDau() != null && kq.getThoiGianNop() != null)
+                ? Duration.between(kq.getThoiGianBatDau(), kq.getThoiGianNop()).getSeconds()
+                : 0L;
+        result.put("thoiGianLamGiay", giay);
+
+        if (kq.getDe() != null) {
+            Map<String, Object> de = new LinkedHashMap<>();
+            de.put("id", kq.getDe().getId());
+            de.put("tieuDe", kq.getDe().getTieuDe());
+            de.put("thoiGian", kq.getDe().getThoiGian());
+            result.put("de", de);
+        }
+
+        if (kq.getHocSinh() != null && kq.getHocSinh().getNguoiDung() != null) {
+            Map<String, Object> hs = new LinkedHashMap<>();
+            hs.put("id", kq.getHocSinh().getId());
+            hs.put("ten", kq.getHocSinh().getNguoiDung().getTen());
+            result.put("hocSinh", hs);
+        }
+
+        return result;
+    }
+
+    // Lấy toàn bộ lịch sử làm bài (dùng cho student)
+    public List<Map<String, Object>> getLichSuLamBai(Integer hocSinhId, Integer deId) {
+        List<KetQua> list = ketQuaRepository.findByHocSinhIdAndDeIdOrderByLanThuAsc(hocSinhId, deId);
+        return list.stream().map(kq -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("ketQuaId", kq.getId());
+            map.put("lanThu", kq.getLanThu());
+            map.put("diemSo", kq.getDiemSo());
+            map.put("nhanXetHeThong", kq.getNhanXetHeThong());
+            map.put("nhanXetGiaoVien", kq.getNhanXetGiaoVien());
+            long giay = (kq.getThoiGianBatDau() != null && kq.getThoiGianNop() != null)
+                    ? Duration.between(kq.getThoiGianBatDau(), kq.getThoiGianNop()).getSeconds()
+                    : 0L;
+            map.put("thoiGianLamGiay", giay);
+            return map;
+        }).collect(Collectors.toList());
+    }
+
 }

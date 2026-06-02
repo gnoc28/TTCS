@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface ChiTietKetQuaRepository extends JpaRepository<ChiTietKetQua, Integer> {
     List<ChiTietKetQua> findByKetQuaId(Integer ketQuaId);
+    
+    void deleteByKetQuaDeId(Integer deId); // xóa theo de
+
+    void deleteByCauHoiDeId(Integer deId);
 }

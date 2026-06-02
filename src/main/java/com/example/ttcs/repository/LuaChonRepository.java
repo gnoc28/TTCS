@@ -13,4 +13,6 @@ public interface LuaChonRepository extends JpaRepository<LuaChon, Integer> {
     LuaChon findByCauHoiAndLaDapAnTrue(CauHoi cauHoi);
     @Query("SELECT lc FROM LuaChon lc WHERE lc.cauHoi.id IN :cauHoiIds")
     List<LuaChon> findByCauHoiIds(List<Integer> cauHoiIds);
+    
+    void deleteByCauHoiDeId(Integer deId);
 }

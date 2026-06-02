@@ -9,4 +9,6 @@ import java.util.List;
 public interface CauHoiRepository extends JpaRepository<CauHoi, Integer> {
     List<CauHoi> findByDeIdOrderByThuTuAsc(Integer deId);
 
+    void deleteByDeId(Integer deId);
+
 }

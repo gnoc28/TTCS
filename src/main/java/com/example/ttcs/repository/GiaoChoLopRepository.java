@@ -14,4 +14,5 @@ public interface GiaoChoLopRepository extends JpaRepository<GiaoChoLop, Integer>
     
     List<GiaoChoLop> findByDeId(Integer deId);
 
+    void deleteByDeId(Integer deId);
 }
