@@ -4,6 +4,7 @@ import java.util.Map;
 
 public class ThongKeResponse {
     public String tieuDe;
+    public String teacherAdvice;
     public Map<String, Object> thongKe;
 
     public ThongKeResponse(Map<String, Object> thongKe) {
