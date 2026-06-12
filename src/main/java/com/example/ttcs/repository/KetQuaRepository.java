@@ -16,4 +16,8 @@ public interface KetQuaRepository extends JpaRepository<KetQua, Integer> {
     List<KetQua> findByHocSinhIdAndDeIdOrderByLanThuAsc(Integer hocSinhId, Integer deId);
 
     void deleteByDeId(Integer deId);
+    
+    void deleteByHocSinhId(Integer hocSinhId);
+
+    void deleteByHocSinhLopLopHocId(Integer lopHocId);
 }

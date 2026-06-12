@@ -21,9 +21,12 @@ public class PreviewExamDTO {
     private Boolean daXuatBan;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Integer khoiLopId;
+    private Integer monHocId;
+    private String khoiLopTen;
+    private String monHocTen;
 
-    // TODO: Uncomment khi làm phần giao cho lớp
-    // private List<GiaoChoLopDTO> giaoChoLop;
+    private List<GiaoChoLopDTO> giaoChoLop;
 
     @Data
     public static class NguoiTaoDTO {
@@ -31,21 +34,18 @@ public class PreviewExamDTO {
         private String vaiTro;
     }
 
-    // TODO: Uncomment khi làm phần giao cho lớp
-    // @Data
-    // public static class GiaoChoLopDTO {
-    // private Integer id;
-    // private Integer de;
-    // private Integer lopHoc;
-    // private LopHocDTO lop;
-    // private LocalDateTime createdAt;
-    // }
+    @Data
+    public static class GiaoChoLopDTO {
+        private Integer id;
+        private Integer lopHocId;
+        private LopHocDTO lop;
+    }
 
-    // @Data
-    // public static class LopHocDTO {
-    // private Integer id;
-    // private String tenLop;
-    // private String maLop;
-    // private String namHoc;
-    // }
+    @Data
+    public static class LopHocDTO {
+        private Integer id;
+        private String tenLop;
+        private String maLop;
+        private String namHoc;
+    }
 }

@@ -6,6 +6,7 @@ import com.example.ttcs.dto.LuaChonDto;
 import com.example.ttcs.dto.PreviewExamDTO;
 import com.example.ttcs.entity.CauHoi;
 import com.example.ttcs.entity.De;
+import com.example.ttcs.entity.GiaoChoLop;
 import com.example.ttcs.entity.LuaChon;
 import com.example.ttcs.entity.NguoiDung;
 import com.example.ttcs.enums.MucDo;
@@ -16,6 +17,7 @@ import com.example.ttcs.repository.ChiTietKetQuaRepository;
 import com.example.ttcs.repository.DeRepository;
 import com.example.ttcs.repository.GiaoChoLopRepository;
 import com.example.ttcs.repository.KetQuaRepository;
+import com.example.ttcs.repository.LopHocRepository;
 import com.example.ttcs.repository.LuaChonRepository;
 import com.example.ttcs.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class CreateExamService {
     private final ChiTietKetQuaRepository chiTietKetQuaRepository;
     private final KetQuaRepository ketQuaRepository;
     private final GiaoChoLopRepository giaoChoLopRepository;
+    private final LopHocRepository lopHocRepository;
 
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -143,13 +146,36 @@ public class CreateExamService {
         dto.setDaXuatBan(de.getDaXuatBan());
         dto.setCreatedAt(de.getCreatedAt());
         dto.setUpdatedAt(de.getUpdatedAt());
+        dto.setKhoiLopId(de.getKhoiLop() != null ? de.getKhoiLop().getId() : null);
+        dto.setMonHocId(de.getMonHoc() != null ? de.getMonHoc().getId() : null);
+        dto.setKhoiLopTen(de.getKhoiLop() != null ? de.getKhoiLop().getTen() : null);
+        dto.setMonHocTen(de.getMonHoc() != null ? de.getMonHoc().getTen() : null);
 
         PreviewExamDTO.NguoiTaoDTO nguoiTaoDTO = new PreviewExamDTO.NguoiTaoDTO();
         nguoiTaoDTO.setId(de.getNguoiTao().getId());
         nguoiTaoDTO.setVaiTro(de.getNguoiTao().getVaiTro().name());
         dto.setNguoiTao(nguoiTaoDTO);
 
-        return dto;
+        List<GiaoChoLop> giaoChoLops = giaoChoLopRepository.findByDeId(de.getId());
+    List<PreviewExamDTO.GiaoChoLopDTO> giaoChoLopDTOs = giaoChoLops.stream()
+        .map(gcl -> {
+            PreviewExamDTO.GiaoChoLopDTO gclDto = new PreviewExamDTO.GiaoChoLopDTO();
+            gclDto.setId(gcl.getId());
+            gclDto.setLopHocId(gcl.getLopHoc().getId());
+
+            PreviewExamDTO.LopHocDTO lopDto = new PreviewExamDTO.LopHocDTO();
+            lopDto.setId(gcl.getLopHoc().getId());
+            lopDto.setTenLop(gcl.getLopHoc().getTenLop());
+            lopDto.setMaLop(gcl.getLopHoc().getMaLop());
+            lopDto.setNamHoc(gcl.getLopHoc().getNamHoc());
+            gclDto.setLop(lopDto);
+
+            return gclDto;
+        })
+        .collect(Collectors.toList());
+    dto.setGiaoChoLop(giaoChoLopDTOs);
+
+    return dto;
     }
 
     // GV + HS đều có thể xóa NHƯNG phải là owner

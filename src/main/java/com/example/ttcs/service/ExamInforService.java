@@ -38,9 +38,7 @@ public class ExamInforService {
     private final KhoiLopRepository khoiLopRepository;
     private final MonHocRepository monHocRepository;
 
-    // ------------------------------------------------------------------ //
     // GET /create_exam/{id}/config
-    // ------------------------------------------------------------------ //
     public ExamConfigResponse getConfig(Integer deId, String username) {
 
         De de = deRepository.findById(deId)
@@ -65,6 +63,8 @@ public class ExamInforService {
         response.setUpdatedAt(de.getUpdatedAt());
         response.setKhoiLopId(de.getKhoiLop() != null ? de.getKhoiLop().getId() : null);
         response.setMonHocId(de.getMonHoc() != null ? de.getMonHoc().getId() : null);
+        response.setKhoiLopTen(de.getKhoiLop() != null ? de.getKhoiLop().getTen() : null);
+        response.setMonHocTen(de.getMonHoc() != null ? de.getMonHoc().getTen() : null);
 
         // Map nguoiTao
         ExamConfigResponse.NguoiTaoDTO nguoiTaoDTO = new ExamConfigResponse.NguoiTaoDTO();

@@ -51,6 +51,18 @@ public class KetQuaService {
         De de = deRepository.findById(request.getDeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đề"));
 
+        if (de.getGioiHanNop() != null) {
+            // Đếm xem học sinh này thực tế đã nộp bài đề này bao nhiêu lần rồi
+            long soLanDaNop = ketQuaRepository.findAll().stream()
+                    .filter(k -> k.getHocSinh() != null && k.getHocSinh().getId().equals(hocSinh.getId())
+                            && k.getDe() != null && k.getDe().getId().equals(de.getId()))
+                    .count();
+
+            if (soLanDaNop >= de.getGioiHanNop()) {
+                throw new RuntimeException("Từ chối xử lý: Học sinh đã đạt giới hạn nộp bài tối đa ("
+                        + de.getGioiHanNop() + " lần) cho đề thi này!");
+            }
+        }        
         HocSinhLop hocSinhLop = null;
         if (request.getLopId() != null) {
             hocSinhLop = hocSinhLopRepository
@@ -117,6 +129,9 @@ public class KetQuaService {
                 ct.setDiemCau(BigDecimal.ZERO);
             }
             chiTietKetQuaRepository.save(ct);
+        }
+        if (soCauDung == request.getCauTraLoi().size()) {
+            totalScore = new BigDecimal("10");
         }
         kq.setDiemSo(totalScore);
 

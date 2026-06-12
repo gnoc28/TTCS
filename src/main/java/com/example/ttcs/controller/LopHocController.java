@@ -1,13 +1,18 @@
 package com.example.ttcs.controller;
 
 import com.example.ttcs.dto.LopHocRequest;
+import com.example.ttcs.entity.HocSinh;
 import com.example.ttcs.entity.LopHoc;
+import com.example.ttcs.repository.HocSinhRepository;
 import com.example.ttcs.service.LopHocService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/lop-hoc")
@@ -16,6 +21,8 @@ public class LopHocController {
 
     @Autowired
     private LopHocService lopHocService;
+    @Autowired
+    private HocSinhRepository hocSinhRepository;
 
     @PostMapping("/tao-moi")
     @PreAuthorize("hasRole('GV')")
@@ -23,6 +30,54 @@ public class LopHocController {
         Integer currentGiaoVienId = request.getGiaoVienId();
         LopHoc lopHocMoi = lopHocService.taoLopHoc(request, currentGiaoVienId);
         return ResponseEntity.ok(lopHocMoi);
+    }
+
+    @DeleteMapping("/{lopHocId}")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> xoaLopHoc(@PathVariable Integer lopHocId) {
+        try {
+            lopHocService.xoaLopHoc(lopHocId);
+            return ResponseEntity.ok("Đã xóa lớp học thành công!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{lopHocId}")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> suaLopHoc(
+            @PathVariable Integer lopHocId,
+            @RequestBody LopHocRequest request) {
+        try {
+            return ResponseEntity.ok(lopHocService.suaLopHoc(lopHocId, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // tim kiem hoc sinh theo ten hoac ma hoc sinh
+    @GetMapping("/hoc-sinh/search")
+    @PreAuthorize("hasRole('GV')")
+    public ResponseEntity<?> searchHocSinh(@RequestParam String keyword) {
+        if (keyword == null || keyword.isBlank())
+            return ResponseEntity.ok(List.of());
+
+        List<HocSinh> results = hocSinhRepository
+                .findByMaHSContainingIgnoreCaseOrNguoiDung_TenContainingIgnoreCase(
+                        keyword.trim(), keyword.trim());
+
+        List<Map<String, Object>> response = results.stream().map(hs -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", hs.getId());
+            m.put("maHS", hs.getMaHS());
+            m.put("ten", hs.getNguoiDung().getTen());
+            m.put("email", hs.getNguoiDung().getEmail());
+            m.put("anhDaiDien", hs.getNguoiDung().getAnhDaiDien());
+            m.put("truong", hs.getTruong() != null ? hs.getTruong().getTen() : null);
+            return m;
+        }).toList();
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{lopHocId}/them-hoc-sinh/{hocSinhId}")
@@ -36,7 +91,7 @@ public class LopHocController {
         return ResponseEntity.ok("Thêm học sinh thành công!");
     }
 
-    // Xóa học sinh khỏi lớp (Đã bỏ yêu cầu giaoVienId cho gọn)
+    // Xóa học sinh khỏi lớp
     @PostMapping("/{lopHocId}/xoa-hoc-sinh/{hocSinhId}")
     @PreAuthorize("hasRole('GV')")
     public ResponseEntity<?> xoaHocSinhReact(
@@ -48,10 +103,16 @@ public class LopHocController {
     }
 
     // lấy danh sách lớp của giáo viên
+    // @GetMapping("/giao-vien/{giaoVienId}")
+    // @PreAuthorize("hasRole('GV')")
+    // public ResponseEntity<?> layDanhSachLopTheoGiaoVien(@PathVariable Integer giaoVienId) {
+    //     return ResponseEntity.ok(lopHocService.layDanhSachLopTheoGiaoVienId(giaoVienId));
+    // }
+    
     @GetMapping("/giao-vien/{giaoVienId}")
     @PreAuthorize("hasRole('GV')")
     public ResponseEntity<?> layDanhSachLopTheoGiaoVien(@PathVariable Integer giaoVienId) {
-        return ResponseEntity.ok(lopHocService.layDanhSachLopTheoGiaoVienId(giaoVienId));
+        return ResponseEntity.ok(lopHocService.layDanhSachLopTheoGiaoVienIdCoSiSo(giaoVienId));
     }
 
     // Lấy danh sách học sinh
@@ -77,7 +138,7 @@ public class LopHocController {
         return ResponseEntity.ok("Thêm học sinh thành công vào DB!");
     }
 
-    //hoc sinh
+    // hoc sinh
     @GetMapping("/hoc-sinh/{hocSinhId}")
     @PreAuthorize("hasRole('HS')")
     public ResponseEntity<?> layDanhSachLopTheoHocSinh(@PathVariable Integer hocSinhId) {

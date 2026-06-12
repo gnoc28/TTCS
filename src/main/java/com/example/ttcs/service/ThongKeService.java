@@ -119,6 +119,52 @@ public class ThongKeService {
             List<ChiTietKetQua> details = chiTietKetQuaRepository.findByKetQuaId(kq.getId());
             allDetails.addAll(details);
         }
+
+        //nhan xet he thong cho giao vien
+        int tongNB = 0, dungNB = 0;
+        int tongTH = 0, dungTH = 0;
+        int tongVD = 0, dungVD = 0;
+        int tongVDC = 0, dungVDC = 0;
+
+        for (ChiTietKetQua ct : allDetails) {
+
+            boolean dung = ct.getDiemCau() != null
+                    && ct.getDiemCau().doubleValue() > 0;
+
+            switch (ct.getCauHoi().getMucDo()) {
+
+                case NB:
+                    tongNB++;
+                    if (dung)
+                        dungNB++;
+                    break;
+
+                case TH:
+                    tongTH++;
+                    if (dung)
+                        dungTH++;
+                    break;
+
+                case VD:
+                    tongVD++;
+                    if (dung)
+                        dungVD++;
+                    break;
+
+                case VDC:
+                    tongVDC++;
+                    if (dung)
+                        dungVDC++;
+                    break;
+            }
+        }
+
+        double avgNB = tongNB > 0 ? dungNB * 100.0 / tongNB : -1;
+        double avgTH = tongTH > 0 ? dungTH * 100.0 / tongTH : -1;
+        double avgVD = tongVD > 0 ? dungVD * 100.0 / tongVD : -1;
+        double avgVDC = tongVDC > 0 ? dungVDC * 100.0 / tongVDC : -1;
+        // nhan xet he thong cho giao vien
+
         for (ChiTietKetQua ct : allDetails) {
             Integer cauHoiId = ct.getCauHoi().getId();
             String noiDung = ct.getCauHoi().getNoiDung();
@@ -167,6 +213,10 @@ public class ThongKeService {
                 tieuDe = deOpt.get().getTieuDe();
             }
         }
+        thongKe.put("avgNB", avgNB);
+        thongKe.put("avgTH", avgTH);
+        thongKe.put("avgVD", avgVD);
+        thongKe.put("avgVDC", avgVDC);
         ThongKeResponse response = new ThongKeResponse(thongKe);
         response.tieuDe = tieuDe;
         return response;

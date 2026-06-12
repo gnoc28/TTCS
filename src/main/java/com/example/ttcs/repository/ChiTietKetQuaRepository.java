@@ -13,4 +13,8 @@ public interface ChiTietKetQuaRepository extends JpaRepository<ChiTietKetQua, In
     void deleteByKetQuaDeId(Integer deId); // xóa theo de
 
     void deleteByCauHoiDeId(Integer deId);
+    
+    void deleteByKetQuaHocSinhId(Integer hocSinhId);
+
+    void deleteByKetQuaHocSinhLopLopHocId(Integer lopHocId);
 }

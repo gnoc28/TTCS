@@ -9,4 +9,8 @@ import java.util.List;
 public interface BaiGiangLopHocRepository extends JpaRepository<BaiGiangLopHoc, Integer> {
     // Tìm các bài giảng được gán cho 1 lớp học cụ thể
     List<BaiGiangLopHoc> findByLopHocId(Integer idLopHoc);
+    
+    void deleteByBaiGiangId(Integer baiGiangId);
+
+    void deleteByLopHocId(Integer lopHocId);
 }

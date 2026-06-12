@@ -21,6 +21,8 @@ public class ExamConfigResponse {
     private LocalDateTime updatedAt;
     private Integer khoiLopId;
     private Integer monHocId;
+    private String khoiLopTen;
+    private String monHocTen;
 
     // Danh sách lớp đã giao (dùng cho ExamAssignment)
     private List<GiaoChoLopDTO> giaoChoLop;

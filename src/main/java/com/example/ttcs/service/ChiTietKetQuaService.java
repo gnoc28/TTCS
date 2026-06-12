@@ -5,8 +5,10 @@ import com.example.ttcs.dto.response.ChiTietKetQuaResponse;
 import com.example.ttcs.dto.response.LuaChonItemResponse;
 import com.example.ttcs.entity.CauHoi;
 import com.example.ttcs.entity.ChiTietKetQua;
+import com.example.ttcs.entity.De;
 import com.example.ttcs.entity.KetQua;
 import com.example.ttcs.entity.LuaChon;
+import com.example.ttcs.enums.PhamViGiao;
 import com.example.ttcs.repository.CauHoiRepository;
 import com.example.ttcs.repository.ChiTietKetQuaRepository;
 import com.example.ttcs.repository.KetQuaRepository;
@@ -14,6 +16,7 @@ import com.example.ttcs.repository.LuaChonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,6 +43,16 @@ public class ChiTietKetQuaService {
 
         List<ChiTietKetQua> ctList = chiTietKetQuaRepository.findByKetQuaId(ketQuaId);
 
+        De deThi = kq.getDe();
+
+        if (deThi != null) {
+            // Giả sử deThi.getPhamViGiao() trả về kiểu Enum PhamViGiao
+            if (deThi.getPhamViGiao() == PhamViGiao.LOP && deThi.getKetThuc() != null) {
+                if (LocalDateTime.now().isBefore(deThi.getKetThuc())) {
+                    throw new RuntimeException("Đề thi dành cho lớp học chưa kết thúc, bạn không được phép xem đáp án chi tiết vào lúc này!");
+                }
+            }
+        }
         /*
          * List<Integer> cauHoiIds = new ArrayList<>();
          * for (ChiTietKetQua ct : ctList) {

@@ -112,17 +112,3 @@ public class ExamController {
                 return ResponseEntity.ok().build();
         }
 }
-// POST/create_exam(JWT→username)│▼ExamController└─
-
-// lấy username từ
-// @AuthenticationPrincipal
-// →truyền xuống service│▼ExamService.createExam(request,username)├─
-
-// findByTenDangNhap(username) → lấy NguoiDung
-// ├─ xác định phamViGiao (GV→LOP, HS→TU)
-// ├─ sinh maHash 6 ký tự unique
-// ├─ INSERT de ←──────────── deRepository.save()
-// └─ for mỗi cauHoi trong noiDungDe.cauHois
-// ├─ INSERT cau_hoi ←── cauHoiRepository.save()
-// └─ for mỗi luaChon
-// └─ INSERT lua_chon ← luaChonRepository.save()

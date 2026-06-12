@@ -5,6 +5,8 @@ public class LopHocHocSinhResponse {
     private String tenLop;
     private String maLop;
     private String namHoc;
+    private Integer soLuongHS;
+
     private KhoiLopDTO khoiLop;
     private MonHocDTO monHoc;
     private GiaoVienDTO giaoVien;
@@ -42,6 +44,14 @@ public class LopHocHocSinhResponse {
 
     public void setNamHoc(String namHoc) {
         this.namHoc = namHoc;
+    }
+
+    public Integer getSoLuongHS() {
+        return soLuongHS;
+    }
+
+    public void setSoLuongHS(Integer soLuongHS) {
+        this.soLuongHS = soLuongHS;
     }
 
     public KhoiLopDTO getKhoiLop() {

@@ -5,9 +5,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FeedbackGenerationService {
 
-    // =========================================================================
     // 1. DÀNH CHO HỌC SINH (Khi xem kết quả cá nhân)
-    // =========================================================================
     public String generateSystemFeedback(double percentNB, double percentTH, double percentVD, double percentVDC) {
         StringBuilder feedback = new StringBuilder();
 
@@ -83,9 +81,7 @@ public class FeedbackGenerationService {
         return feedback.toString();
     }
     
-    // =========================================================================
     // 2. DÀNH CHO GIÁO VIÊN (Phân tích lớp học - Có Giao Thoa Móc Nối)
-    // =========================================================================
     public String generateTeacherAdvice(double avgNB, double avgTH, double avgVD, double avgVDC) {
         StringBuilder advice = new StringBuilder();
 
