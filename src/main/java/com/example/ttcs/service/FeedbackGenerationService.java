@@ -86,15 +86,36 @@ public class FeedbackGenerationService {
         StringBuilder advice = new StringBuilder();
 
         // --- ĐÁNH GIÁ CHUNG TỪNG PHẦN ---
+        // --- ĐÁNH GIÁ CHUNG TỪNG PHẦN ---
         advice.append("📊 THỐNG KÊ NHANH TÌNH HÌNH LỚP:\n");
-        if (avgNB != -1 && avgNB < 50)
-            advice.append("- Nhận biết: Đa số học sinh rỗng kiến thức nền.\n");
-        if (avgTH != -1 && avgTH < 50)
-            advice.append("- Thông hiểu: Lớp học vẹt, chưa hiểu bản chất vấn đề.\n");
-        if (avgVD != -1 && avgVD < 50)
-            advice.append("- Vận dụng: Kỹ năng giải bài tập của tập thể đang rất yếu.\n");
-        if (avgVDC != -1 && avgVDC < 30)
-            advice.append("- Vận dụng cao: Rất ít em giải quyết được câu hỏi phân loại.\n");
+        
+        if (avgNB != -1) {
+            advice.append("- Nhận biết: ");
+            if (avgNB < 50) advice.append("Tỷ lệ sai kiến thức cơ bản còn cao.\n");
+            else if (avgNB < 80) advice.append("Đa số nắm được cơ bản nhưng đôi chỗ chưa thực sự chắc chắn.\n");
+            else advice.append("Rất tốt, lớp nắm cực kỳ vững kiến thức nền tảng.\n");
+        }
+
+        if (avgTH != -1) {
+            advice.append("- Thông hiểu: ");
+            if (avgTH < 50) advice.append("Nhiều em gặp khó khăn trong việc hiểu bản chất.\n");
+            else if (avgTH < 80) advice.append("Khả năng phân tích và hiểu câu hỏi ở mức khá.\n");
+            else advice.append("Lớp hiểu sâu và phân tích vấn đề rất mạch lạc.\n");
+        }
+
+        if (avgVD != -1) {
+            advice.append("- Vận dụng: ");
+            if (avgVD < 50) advice.append("Kỹ năng xử lý bài tập thực hành chưa đạt kỳ vọng.\n");
+            else if (avgVD < 80) advice.append("Đã biết cách áp dụng công thức vào giải bài tập.\n");
+            else advice.append("Kỹ năng giải bài tập của tập thể rất đồng đều và chính xác.\n");
+        }
+
+        if (avgVDC != -1) {
+            advice.append("- Vận dụng cao: ");
+            if (avgVDC < 30) advice.append("Nhóm học sinh có khả năng giải câu khó còn mỏng.\n");
+            else if (avgVDC < 60) advice.append("Một bộ phận học sinh đã bắt đầu làm được các câu phân loại.\n");
+            else advice.append("Tuyệt vời, nhiều em có tư duy đột phá, giải tốt câu hỏi khó.\n");
+        }
 
         // --- TƯ VẤN SƯ PHẠM TỔNG QUAN (GIAO THOA) ---
         advice.append("\n💡 TƯ VẤN CHIẾN THUẬT GIẢNG DẠY:\n");
