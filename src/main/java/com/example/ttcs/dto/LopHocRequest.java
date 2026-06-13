@@ -4,6 +4,8 @@ public class LopHocRequest {
     private String tenLop;
     private String maLop;
     private String namHoc;
+    private Integer khoiLopId;
+    private Integer monHocId;
     private Integer giaoVienId;
 
     public LopHocRequest() {
@@ -40,5 +42,21 @@ public class LopHocRequest {
 
     public void setGiaoVienId(Integer giaoVienId) {
         this.giaoVienId = giaoVienId;
+    }
+
+    public Integer getKhoiLopId() {
+        return khoiLopId;
+    }
+
+    public void setKhoiLopId(Integer khoiLopId) {
+        this.khoiLopId = khoiLopId;
+    }
+
+    public Integer getMonHocId() {
+        return monHocId;
+    }
+
+    public void setMonHocId(Integer monHocId) {
+        this.monHocId = monHocId;
     }
 }

@@ -7,9 +7,9 @@ import java.util.List;
 public class BaiGiangRequest {
     private String tieuDe;
     private String noiDung;
-    private Integer idGiaoVien; 
+    private Integer idGiaoVien;
     // Đã sửa thành Integer cho khớp với bảng LopHoc của bạn
-    private List<Integer> danhSachIdLopHoc; 
+    private List<Integer> danhSachIdLopHoc;
     private List<FileDto> danhSachFile;
 
     @Data

@@ -2,7 +2,7 @@ package com.example.ttcs.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // Thêm import này
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,13 +25,14 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private AuthTokenFilter authTokenFilter; 
+    private AuthTokenFilter authTokenFilter; // them
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // 1. Chỉ giữ lại DUY NHẤT một hàm authenticationManager này
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
@@ -43,12 +44,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) 
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // thêm
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        // 🚀 MỞ CỬA CHO XE THĂM DÒ CỦA REACT (AXIOS OPTIONS)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() //moi
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated());
 
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

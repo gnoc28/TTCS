@@ -1,5 +1,10 @@
 package com.example.ttcs.entity;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +20,24 @@ public class LopHoc {
     @ManyToOne
     @JoinColumn(name = "giao_vien_id")
     private GiaoVien giaoVien;
+
+    // them moi
+    @ManyToOne
+    @JoinColumn(name = "khoi_lop_id")
+    private KhoiLop khoiLop;
+
+    @ManyToOne
+    @JoinColumn(name = "mon_hoc_id")
+    private MonHoc monHoc;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+    // het them moi
 
     public LopHoc() {
     }
@@ -58,5 +81,21 @@ public class LopHoc {
 
     public void setGiaoVien(GiaoVien giaoVien) {
         this.giaoVien = giaoVien;
+    }
+
+    public KhoiLop getKhoiLop() {
+        return khoiLop;
+    }
+
+    public void setKhoiLop(KhoiLop khoiLop) {
+        this.khoiLop = khoiLop;
+    }
+
+    public MonHoc getMonHoc() {
+        return monHoc;
+    }
+
+    public void setMonHoc(MonHoc monHoc) {
+        this.monHoc = monHoc;
     }
 }

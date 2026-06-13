@@ -25,11 +25,13 @@ public class HocSinh {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @JsonIgnoreProperties({"hocSinh", "matKhau", "password"})
+    @JsonIgnoreProperties({ "hocSinh", "matKhau", "password" })
     @OneToOne
     @MapsId
     @JoinColumn(name = "id")
     private NguoiDung nguoiDung;
+
+    @ManyToOne  // them truong
+    @JoinColumn(name = "truong_id")
+    private Truong truong;
 }
-
-

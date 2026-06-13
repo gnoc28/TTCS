@@ -1,20 +1,32 @@
 package com.example.ttcs.service;
 
+import com.example.ttcs.dto.LopHocHocSinhResponse;
 import com.example.ttcs.dto.LopHocRequest;
 import com.example.ttcs.entity.GiaoVien;
 import com.example.ttcs.entity.HocSinh;
 import com.example.ttcs.entity.HocSinhLop;
+import com.example.ttcs.entity.KhoiLop;
 import com.example.ttcs.entity.LopHoc;
+import com.example.ttcs.entity.MonHoc;
+import com.example.ttcs.repository.BaiGiangLopHocRepository;
+import com.example.ttcs.repository.ChiTietKetQuaRepository;
+import com.example.ttcs.repository.GiaoChoLopRepository;
 import com.example.ttcs.repository.GiaoVienRepository;
 import com.example.ttcs.repository.HocSinhLopRepository;
 import com.example.ttcs.repository.HocSinhRepository;
+import com.example.ttcs.repository.KetQuaRepository;
+import com.example.ttcs.repository.KhoiLopRepository;
 import com.example.ttcs.repository.LopHocRepository;
+import com.example.ttcs.repository.MonHocRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors; // 🚀 Đã import thêm cái này
+import java.util.Map;
+
+import java.util.stream.Collectors;
 
 @Service
 public class LopHocService {
@@ -31,16 +43,91 @@ public class LopHocService {
     @Autowired
     private HocSinhRepository hocSinhRepository;
 
+    @Autowired
+    private KhoiLopRepository khoiLopRepository;
+
+    @Autowired
+    private MonHocRepository monHocRepository;
+
+    @Autowired
+private ChiTietKetQuaRepository chiTietKetQuaRepository;
+
+@Autowired
+private KetQuaRepository ketQuaRepository;
+
+@Autowired
+private GiaoChoLopRepository giaoChoLopRepository;
+
+@Autowired
+private BaiGiangLopHocRepository baiGiangLopHocRepository;
+
     @Transactional
     public LopHoc taoLopHoc(LopHocRequest request, Integer giaoVienId) {
         GiaoVien giaoVien = giaoVienRepository.findById(giaoVienId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
 
+        KhoiLop khoiLop = khoiLopRepository.findById(request.getKhoiLopId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khối lớp"));
+
+        MonHoc monHoc = monHocRepository.findById(request.getMonHocId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+
         LopHoc lopHoc = new LopHoc();
         lopHoc.setTenLop(request.getTenLop());
         lopHoc.setMaLop(request.getMaLop());
         lopHoc.setNamHoc(request.getNamHoc());
+        lopHoc.setKhoiLop(khoiLop);
+        lopHoc.setMonHoc(monHoc);
         lopHoc.setGiaoVien(giaoVien);
+
+        return lopHocRepository.save(lopHoc);
+    }
+
+    @Transactional
+    public void xoaLopHoc(Integer lopHocId) {
+        LopHoc lopHoc = lopHocRepository.findById(lopHocId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+
+        // 1. ChiTietKetQua → KetQua (qua HocSinhLop)
+        chiTietKetQuaRepository.deleteByKetQuaHocSinhLopLopHocId(lopHocId);
+        ketQuaRepository.deleteByHocSinhLopLopHocId(lopHocId);
+
+        // 2. HocSinhLop
+        hocSinhLopRepository.deleteByLopHocId(lopHocId);
+
+        // 3. GiaoChoLop (đề từ lớp khác trỏ vào lớp này)
+        giaoChoLopRepository.deleteByLopHocId(lopHocId);
+
+        // 4. BaiGiangLopHoc
+        baiGiangLopHocRepository.deleteByLopHocId(lopHocId);
+
+        // 5. Xóa LopHoc
+        lopHocRepository.deleteById(lopHocId);
+    }
+
+    // Sửa thông tin lớp
+    @Transactional
+    public LopHoc suaLopHoc(Integer lopHocId, LopHocRequest request) {
+        LopHoc lopHoc = lopHocRepository.findById(lopHocId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+
+        if (request.getTenLop() != null)
+            lopHoc.setTenLop(request.getTenLop());
+        if (request.getMaLop() != null)
+            lopHoc.setMaLop(request.getMaLop());
+        if (request.getNamHoc() != null)
+            lopHoc.setNamHoc(request.getNamHoc());
+
+        if (request.getKhoiLopId() != null) {
+            KhoiLop khoiLop = khoiLopRepository.findById(request.getKhoiLopId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khối lớp"));
+            lopHoc.setKhoiLop(khoiLop);
+        }
+        if (request.getMonHocId() != null) {
+            MonHoc monHoc = monHocRepository.findById(request.getMonHocId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+            lopHoc.setMonHoc(monHoc);
+        }
 
         return lopHocRepository.save(lopHoc);
     }
@@ -82,15 +169,32 @@ public class LopHocService {
         return lopHoc;
     }
 
-    public List<LopHoc> layDanhSachLopTheoGiaoVienId(Integer giaoVienId) {
-        return lopHocRepository.findByGiaoVienId(giaoVienId);
+    // public List<LopHoc> layDanhSachLopTheoGiaoVienId(Integer giaoVienId) {
+    //     return lopHocRepository.findByGiaoVienId(giaoVienId);
+    // }
+    public List<Map<String, Object>> layDanhSachLopTheoGiaoVienIdCoSiSo(Integer giaoVienId) {
+        return lopHocRepository.findByGiaoVienId(giaoVienId)
+                .stream()
+                .map(lop -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("id", lop.getId());
+                    m.put("tenLop", lop.getTenLop());
+                    m.put("maLop", lop.getMaLop());
+                    m.put("namHoc", lop.getNamHoc());
+                    m.put("soLuongHS", hocSinhLopRepository.countByLopHocId(lop.getId()));
+                    if (lop.getKhoiLop() != null) {
+                        m.put("khoiLop", Map.of("id", lop.getKhoiLop().getId(),
+                                "ten", lop.getKhoiLop().getTen()));
+                    }
+                    if (lop.getMonHoc() != null) {
+                        m.put("monHoc", Map.of("id", lop.getMonHoc().getId(),
+                                "ten", lop.getMonHoc().getTen()));
+                    }
+                    return m;
+                })
+                .collect(Collectors.toList());
     }
-
-    // =========================================================================
-    // 🚀 2 HÀM MỚI ĐỂ PHỤC VỤ CHO REACT
-    // =========================================================================
-
-    // 1. Thêm học sinh thẳng bằng Mã HS (Không cần bắt React gửi GiaoVienId nữa)
+    // Thêm học sinh thẳng bằng Mã HS (Không cần bắt React gửi GiaoVienId nữa)
     @Transactional
     public void themHocSinhBangMa(Integer lopHocId, String maHocSinh) {
         LopHoc lopHoc = lopHocRepository.findById(lopHocId)
@@ -114,17 +218,66 @@ public class LopHocService {
     // 2. Lấy danh sách học sinh của 1 lớp
     public List<HocSinh> layDanhSachHocSinhTheoLop(Integer lopHocId) {
         List<HocSinhLop> danhSachHocSinhLop = hocSinhLopRepository.findByLopHocId(lopHocId);
-        
+
         // Trích xuất Học Sinh từ bảng trung gian HocSinhLop
         return danhSachHocSinhLop.stream()
                 .map(HocSinhLop::getHocSinh)
                 .collect(Collectors.toList());
     }
-    // 3. Xóa học sinh khỏi lớp (Dành riêng cho React)
+
+    // 3. Xóa học sinh khỏi lớp
     @Transactional
     public void xoaHocSinhKhoiLopReact(Integer lopHocId, Integer hocSinhId) {
         HocSinhLop hocSinhLop = hocSinhLopRepository.findByLopHocIdAndHocSinhId(lopHocId, hocSinhId)
                 .orElseThrow(() -> new RuntimeException("Học sinh không thuộc lớp này"));
         hocSinhLopRepository.delete(hocSinhLop);
+    }
+
+    // hoc sinh
+    public List<LopHocHocSinhResponse> layDanhSachLopTheoHocSinhId(Integer hocSinhId) {
+        return hocSinhLopRepository.findByHocSinhId(hocSinhId)
+                .stream()
+                .map(HocSinhLop::getLopHoc)
+                .map(this::mapToHocSinhResponse)
+                .collect(Collectors.toList());
+    }
+
+    public LopHocHocSinhResponse layThongTinLop(Integer lopHocId) {
+        LopHoc lopHoc = lopHocRepository.findById(lopHocId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+        return mapToHocSinhResponse(lopHoc);
+    }
+
+    private LopHocHocSinhResponse mapToHocSinhResponse(LopHoc lopHoc) {
+        LopHocHocSinhResponse res = new LopHocHocSinhResponse();
+        res.setId(lopHoc.getId());
+        res.setTenLop(lopHoc.getTenLop());
+        res.setMaLop(lopHoc.getMaLop());
+        res.setNamHoc(lopHoc.getNamHoc());
+        res.setSoLuongHS(
+                (int) hocSinhLopRepository.countByLopHocId(lopHoc.getId()));
+
+        if (lopHoc.getKhoiLop() != null) {
+            LopHocHocSinhResponse.KhoiLopDTO kl = new LopHocHocSinhResponse.KhoiLopDTO();
+            kl.setId(lopHoc.getKhoiLop().getId());
+            kl.setTen(lopHoc.getKhoiLop().getTen());
+            res.setKhoiLop(kl);
+        }
+
+        if (lopHoc.getMonHoc() != null) {
+            LopHocHocSinhResponse.MonHocDTO mh = new LopHocHocSinhResponse.MonHocDTO();
+            mh.setId(lopHoc.getMonHoc().getId());
+            mh.setTen(lopHoc.getMonHoc().getTen());
+            res.setMonHoc(mh);
+        }
+
+        if (lopHoc.getGiaoVien() != null) {
+            LopHocHocSinhResponse.GiaoVienDTO gv = new LopHocHocSinhResponse.GiaoVienDTO();
+            gv.setId(lopHoc.getGiaoVien().getId());
+            gv.setHoTen(lopHoc.getGiaoVien().getNguoiDung().getTen());
+            res.setGiaoVien(gv);
+        }
+
+        return res;
     }
 }

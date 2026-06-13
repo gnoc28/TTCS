@@ -26,4 +26,5 @@ public class GiaoVienController {
         // Lấy danh sách kết quả của toàn lớp
         return ResponseEntity.ok("Dữ liệu thống kê của lớp...");
     }
+    
 }
