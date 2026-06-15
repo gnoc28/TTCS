@@ -1,34 +1,46 @@
 package com.example.ttcs.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
 @Entity
-@Table(name = "giao_cho_lop", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_gcl_bt_lh", columnNames = {"de_id", "lop_hoc_id"})
-})
 public class GiaoChoLop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "de_id", nullable = false)
+    @JoinColumn(name = "de_id")
     private De de;
 
     @ManyToOne
-    @JoinColumn(name = "lop_hoc_id", nullable = false)
+    @JoinColumn(name = "lop_hoc_id")
     private LopHoc lopHoc;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    public GiaoChoLop() {
+    }
+
+    // Getter và Setter cho DeService dùng
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public De getDe() {
+        return de;
+    }
+
+    public void setDe(De de) {
+        this.de = de;
+    }
+
+    public LopHoc getLopHoc() {
+        return lopHoc;
+    }
+
+    public void setLopHoc(LopHoc lopHoc) {
+        this.lopHoc = lopHoc;
+    }
 }
-
-

@@ -3,16 +3,12 @@ package com.example.ttcs.entity;
 import com.example.ttcs.enums.GioiTinh;
 import com.example.ttcs.enums.VaiTro;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "nguoi_dung")
 public class NguoiDung {
@@ -67,6 +63,132 @@ public class NguoiDung {
 
     @OneToOne(mappedBy = "nguoiDung")
     private HocSinh hocSinh;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getTenDangNhap() {
+        return tenDangNhap;
+    }
+
+    public void setTenDangNhap(String tenDangNhap) {
+        this.tenDangNhap = tenDangNhap;
+    }
+
+    public String getMatKhau() {
+        return matKhau;
+    }
+
+    public void setMatKhau(String matKhau) {
+        this.matKhau = matKhau;
+    }
+
+    public String getHo() {
+        return ho;
+    }
+
+    public void setHo(String ho) {
+        this.ho = ho;
+    }
+
+    public String getTenDem() {
+        return tenDem;
+    }
+
+    public void setTenDem(String tenDem) {
+        this.tenDem = tenDem;
+    }
+
+    public String getTen() {
+        return ten;
+    }
+
+    public void setTen(String ten) {
+        this.ten = ten;
+    }
+
+    public String getSoDienThoai() {
+        return soDienThoai;
+    }
+
+    public void setSoDienThoai(String soDienThoai) {
+        this.soDienThoai = soDienThoai;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public LocalDate getNgaySinh() {
+        return ngaySinh;
+    }
+
+    public void setNgaySinh(LocalDate ngaySinh) {
+        this.ngaySinh = ngaySinh;
+    }
+
+    public GioiTinh getGioiTinh() {
+        return gioiTinh;
+    }
+
+    public void setGioiTinh(GioiTinh gioiTinh) {
+        this.gioiTinh = gioiTinh;
+    }
+
+    public String getAnhDaiDien() {
+        return anhDaiDien;
+    }
+
+    public void setAnhDaiDien(String anhDaiDien) {
+        this.anhDaiDien = anhDaiDien;
+    }
+
+    public VaiTro getVaiTro() {
+        return vaiTro;
+    }
+
+    public void setVaiTro(VaiTro vaiTro) {
+        this.vaiTro = vaiTro;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public GiaoVien getGiaoVien() {
+        return giaoVien;
+    }
+
+    public void setGiaoVien(GiaoVien giaoVien) {
+        this.giaoVien = giaoVien;
+    }
+
+    public HocSinh getHocSinh() {
+        return hocSinh;
+    }
+
+    public void setHocSinh(HocSinh hocSinh) {
+        this.hocSinh = hocSinh;
+    }
 }
-
-
